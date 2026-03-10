@@ -1,7 +1,7 @@
 // ============================================================================
 // Logic App (Consumption) – Event Grid Trigger → CUA API Pipeline
 //
-// Triggered by Microsoft.Storage.BlobCreated events from aaaorgcuastore,
+// Triggered by Microsoft.Storage.BlobCreated events from the payloads storage account,
 // fired for JSON files uploaded to the `payloads` container under
 // payloads/{YYYY}/{MM}/{DD}/{HH}/<filename>.json
 //
@@ -29,11 +29,11 @@ param location string
 @description('Unique resource token used for naming')
 param resourceToken string
 
-@description('Storage account name (aaaorgcuastore) – must already exist')
-param storageAccountName string = 'aaaorgcuastore'
+@description('Storage account name – must already exist')
+param storageAccountName string
 
 @description('CUA Container App base URL')
-param cuaApiUrl string = 'https://cua-lunarair.braverock-d5a3ef65.eastus2.azurecontainerapps.io'
+param cuaApiUrl string
 
 // ── Logic App (Consumption) ───────────────────────────────────────────────────
 resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {

@@ -46,7 +46,6 @@
     },
     "dbUser": {
       "type": "string",
-      "defaultValue": "adminsrram",
       "metadata": {
         "description": "PostgreSQL user"
       }
@@ -66,7 +65,7 @@
     },
     "cuaApiUrl": {
       "type": "string",
-      "defaultValue": "https://cua-lunarair.braverock-d5a3ef65.eastus2.azurecontainerapps.io",
+      "defaultValue": "https://cua-lunarair.<your-env>.eastus2.azurecontainerapps.io",
       "metadata": {
         "description": "CUA Container App base URL"
       }
@@ -625,9 +624,9 @@
             },
             "storageAccountName": {
               "type": "string",
-              "defaultValue": "aaaorgcuastore",
+              "defaultValue": "<your-storage-account>",
               "metadata": {
-                "description": "Storage account name (aaaorgcuastore) – must already exist"
+                "description": "Storage account name (<your-storage-account>) – must already exist"
               }
             },
             "storageAccountResourceGroup": {
@@ -639,7 +638,7 @@
             },
             "cuaApiUrl": {
               "type": "string",
-              "defaultValue": "https://cua-lunarair.braverock-d5a3ef65.eastus2.azurecontainerapps.io",
+              "defaultValue": "https://cua-lunarair.<your-env>.eastus2.azurecontainerapps.io",
               "metadata": {
                 "description": "CUA Container App base URL"
               }
@@ -1873,9 +1872,9 @@
             },
             "storageAccountName": {
               "type": "string",
-              "defaultValue": "aaaorgcuastore",
+              "defaultValue": "<your-storage-account>",
               "metadata": {
-                "description": "Storage account name (aaaorgcuastore) – must already exist in this resource group"
+                "description": "Storage account name (<your-storage-account>) – must already exist in this resource group"
               }
             }
           },

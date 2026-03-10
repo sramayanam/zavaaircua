@@ -17,9 +17,9 @@ services:
     docker:
       path: Dockerfile
     # NOTE: The CUA app targets an existing Container App environment in a
-    # different subscription (32e739cb / rg-complaints). Deploy it separately:
+    # different subscription. Deploy it separately:
     #   az deployment group create \
-    #     --subscription 32e739cb-7b23-4259-a180-e1e0e69b974d \
+    #     --subscription <your-subscription-id> \
     #     --resource-group rg-complaints \
     #     --template-file infra/cua-containerapp.bicep \
     #     --parameters cuaImage=<acr>.azurecr.io/cua-lunarair:<tag> ...

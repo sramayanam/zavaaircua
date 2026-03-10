@@ -4,12 +4,12 @@ flowchart TD
 
     subgraph EG["Azure Event Grid"]
         B["System Topic
-        aaaorgcuastore-0a19e…"]
+        <your-system-topic-name>"]
     end
 
     B -->|HTTP POST| C
 
-    subgraph LA["Logic App — la-cua-rpa-gsuqive4sc3tm"]
+    subgraph LA["Logic App — <your-logic-app>"]
         C["HTTP Trigger
         (Event Grid endpoint)"]
         C --> D{"Check_If_Validation
@@ -66,7 +66,7 @@ flowchart TD
         N --> O --> P --> Q
     end
 
-    subgraph ST["Azure Table Storage — aaaorgcuastore"]
+    subgraph ST["Azure Table Storage — <your-storage-account>"]
         R["logicAppAudit table
         RowKey = job_id"]
         S["cua-screenshots/{job_id}/

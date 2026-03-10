@@ -46,9 +46,10 @@ function logTelemetry(label: string, data: Record<string, unknown>) {
 }
 
 // ── Config ─────────────────────────────────────────────────────────────────
-const APP_URL = "https://azcagsuqive4sc3tm.braverock-d5a3ef65.eastus2.azurecontainerapps.io/";
-const AZURE_ENDPOINT = "https://foundry1-fmm3i2qnm7roo.cognitiveservices.azure.com/";
-const DEPLOYMENT = "computer-use-preview";
+// Values are read from environment variables. Copy .env.example → .env and populate.
+const APP_URL = process.env.ZAVA_AIR_URL ?? "http://localhost:3000/";
+const AZURE_ENDPOINT = process.env.AZURE_OPENAI_BASE_URL ?? "";
+const DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT ?? "computer-use-preview";
 const API_VERSION = "2025-03-01-preview";
 
 // gpt-4o-mini — used only for cheap intent extraction (no screenshots)

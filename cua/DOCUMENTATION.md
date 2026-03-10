@@ -862,24 +862,24 @@ Drop a `.json` file into `scenarios/`. The server reloads it on the next `/api/d
 
 | Resource                  | Name                       | Resource Group  | Subscription |
 | ------------------------- | -------------------------- | --------------- | ------------ |
-| Container Registry        | `azacrgsuqive4sc3tm`       | `rg-complaints` | `32e739cb`   |
-| Container App Environment | `azcaegsuqive4sc3tm`       | `rg-complaints` | `32e739cb`   |
-| Container App             | `cua-lunarair`             | `rg-complaints` | `32e739cb`   |
-| Storage Account           | `aaaorgcuastore`           | `rg-databases`  | `32e739cb`   |
+| Container Registry        | `<your-acr>`       | `rg-complaints` | `<sub-id>`   |
+| Container App Environment | `<your-managed-env>`       | `rg-complaints` | `<sub-id>`   |
+| Container App             | `cua-lunarair`             | `rg-complaints` | `<sub-id>`   |
+| Storage Account           | `<your-storage-account>`           | `rg-databases`  | `<sub-id>`   |
 | Blob Container            | `payloads`                 | —               | —            |
 | Blob Container            | `cua-screenshots`          | —               | —            |
 | Table                     | `logicAppAudit`            | —               | —            |
-| Logic App (Consumption)   | `la-cua-rpa-gsuqive4sc3tm` | `rg-complaints` | `32e739cb`   |
-| Event Grid System Topic   | `aaaorgcuastore-0a19e10e…` | `rg-databases`  | `32e739cb`   |
-| UAMI                      | `aaaorguamgdidentity`      | `rg-sc`         | `aa8123d8`   |
-| AI Foundry Resource       | `foundry1-fmm3i2qnm7roo`  | `rg-sc`         | `aa8123d8`   |
+| Logic App (Consumption)   | `<your-logic-app>` | `rg-complaints` | `<sub-id>`   |
+| Event Grid System Topic   | `<your-storage-account>-0a19e10e…` | `rg-databases`  | `<sub-id>`   |
+| UAMI                      | `<your-uami-name>`      | `rg-sc`         | `<uami-sub-id>`   |
+| AI Foundry Resource       | `<your-foundry>`  | `rg-sc`         | `<uami-sub-id>`   |
 
 ### UAMI Details
 
 | Property     | Value                                    |
 | ------------ | ---------------------------------------- |
-| Client ID    | `7f12934d-08b8-402b-8c1d-8529efd4f8c1`  |
-| Principal ID | `1551b046-33aa-45ac-a523-86934d597339`  |
+| Client ID    | `<your-uami-client-id>`  |
+| Principal ID | `<your-uami-principal-id>`  |
 
 ---
 
@@ -896,12 +896,12 @@ flowchart TD
 
     subgraph EG["Azure Event Grid"]
         B["System Topic
-        aaaorgcuastore-0a19e…"]
+        <your-storage-account>-0a19e…"]
     end
 
     B -->|HTTP POST| C
 
-    subgraph LA["Logic App — la-cua-rpa-gsuqive4sc3tm"]
+    subgraph LA["Logic App — <your-logic-app>"]
         C["HTTP Trigger
         (Event Grid endpoint)"]
         C --> D{"Check_If_Validation
@@ -958,7 +958,7 @@ flowchart TD
         N --> O --> P --> Q
     end
 
-    subgraph ST["Azure Table Storage — aaaorgcuastore"]
+    subgraph ST["Azure Table Storage — <your-storage-account>"]
         R["logicAppAudit table
         RowKey = job_id"]
         S["cua-screenshots/{job_id}/
@@ -980,10 +980,10 @@ flowchart TD
 ```
 
 ```
-Azure Blob Storage (aaaorgcuastore / payloads container)
+Azure Blob Storage (<your-storage-account> / payloads container)
     │  BlobCreated event
     ▼
-Event Grid System Topic  ──►  Logic App HTTP trigger (la-cua-rpa-gsuqive4sc3tm)
+Event Grid System Topic  ──►  Logic App HTTP trigger (<your-logic-app>)
     │
     │  Step 1: Subscription validation handshake (auto-handled)
     │  Step 2: Check_If_Validation — is this a real event or a validation probe?
@@ -1001,7 +1001,7 @@ Event Grid System Topic  ──►  Logic App HTTP trigger (la-cua-rpa-gsuqive4s
     │  Step 8: Write_Audit_* → logicAppAudit table (Azure Table Storage)
     │           PartitionKey = mode,  RowKey = job_id
     ▼
-Azure Table Storage (aaaorgcuastore / logicAppAudit)
+Azure Table Storage (<your-storage-account> / logicAppAudit)
     PartitionKey  = "create" | "update" | "rejected"
     RowKey        = CUA job_id  (also = screenshot folder in cua-screenshots)
     blobUrl       = source blob URL
@@ -1017,7 +1017,7 @@ Azure Table Storage (aaaorgcuastore / logicAppAudit)
 
 ```bash
 az storage blob list \
-  --account-name aaaorgcuastore \
+  --account-name <your-storage-account> \
   --container-name cua-screenshots \
   --prefix "<RowKey>/" \
   --auth-mode login \
@@ -1066,7 +1066,7 @@ This is idempotent — redeployment will not fail if the table already exists.
 
 ```bash
 az storage blob upload \
-  --account-name aaaorgcuastore \
+  --account-name <your-storage-account> \
   --container-name payloads \
   --name "payloads/2026/03/09/09/create_baggage.json" \
   --file "samples/payloads/2026/03/09/09/create_baggage.json" \
@@ -1115,8 +1115,8 @@ The two files under `11/` are intentionally invalid (bad severity enum / missing
 
 ```bash
 az storage container create \
-  --subscription 32e739cb-7b23-4259-a180-e1e0e69b974d \
-  --account-name aaaorgcuastore \
+  --subscription <your-subscription-id> \
+  --account-name <your-storage-account> \
   --name         cua-screenshots \
   --auth-mode    login
 ```
@@ -1125,42 +1125,42 @@ az storage container create \
 
 ```bash
 az deployment group create \
-  --subscription   32e739cb-7b23-4259-a180-e1e0e69b974d \
+  --subscription   <your-subscription-id> \
   --resource-group rg-databases \
   --template-file  infra/storage-rbac.bicep \
-  --parameters     storageAccountName=aaaorgcuastore \
-                   uamiPrincipalId=1551b046-33aa-45ac-a523-86934d597339
+  --parameters     storageAccountName=<your-storage-account> \
+                   uamiPrincipalId=<your-uami-principal-id>
 ```
 
 **Step 3 — Grant AcrPull to UAMI:**
 
 ```bash
 az role assignment create \
-  --subscription            32e739cb-7b23-4259-a180-e1e0e69b974d \
+  --subscription            <your-subscription-id> \
   --role                    "AcrPull" \
-  --assignee-object-id      1551b046-33aa-45ac-a523-86934d597339 \
+  --assignee-object-id      <your-uami-principal-id> \
   --assignee-principal-type ServicePrincipal \
-  --scope /subscriptions/32e739cb-7b23-4259-a180-e1e0e69b974d/resourceGroups/rg-complaints/providers/Microsoft.ContainerRegistry/registries/azacrgsuqive4sc3tm
+  --scope /subscriptions/<your-subscription-id>/resourceGroups/rg-complaints/providers/Microsoft.ContainerRegistry/registries/<your-acr>
 ```
 
 **Step 4 — Grant Azure AI User on Foundry resource (enables agents/write):**
 
 ```bash
 az role assignment create \
-  --subscription            aa8123d8-cdcc-443a-a2a1-a0ed191da95c \
+  --subscription            <your-uami-subscription-id> \
   --role                    "Azure AI User" \
-  --assignee-object-id      1551b046-33aa-45ac-a523-86934d597339 \
+  --assignee-object-id      <your-uami-principal-id> \
   --assignee-principal-type ServicePrincipal \
-  --scope /subscriptions/aa8123d8-cdcc-443a-a2a1-a0ed191da95c/resourceGroups/rg-sc/providers/Microsoft.CognitiveServices/accounts/foundry1-fmm3i2qnm7roo
+  --scope /subscriptions/<your-uami-subscription-id>/resourceGroups/rg-sc/providers/Microsoft.CognitiveServices/accounts/<your-foundry>
 ```
 
 **Step 5 — Build and push Docker image:**
 
 ```bash
 az acr build \
-  --subscription   32e739cb-7b23-4259-a180-e1e0e69b974d \
+  --subscription   <your-subscription-id> \
   --resource-group rg-complaints \
-  --registry       azacrgsuqive4sc3tm \
+  --registry       <your-acr> \
   --image          cua-lunarair:latest \
   cua/
 ```
@@ -1169,27 +1169,27 @@ az acr build \
 
 ```bash
 az deployment group create \
-  --subscription   32e739cb-7b23-4259-a180-e1e0e69b974d \
+  --subscription   <your-subscription-id> \
   --resource-group rg-complaints \
   --template-file  infra/cua-containerapp.bicep \
   --parameters \
-      acrLoginServer=azacrgsuqive4sc3tm.azurecr.io \
-      cuaImage=azacrgsuqive4sc3tm.azurecr.io/cua-lunarair:latest \
-      azureOpenAiBaseUrl=https://foundry1-fmm3i2qnm7roo.cognitiveservices.azure.com/openai/v1/ \
+      acrLoginServer=<your-acr>.azurecr.io \
+      cuaImage=<your-acr>.azurecr.io/cua-lunarair:latest \
+      azureOpenAiBaseUrl=https://<your-foundry>.cognitiveservices.azure.com/openai/v1/ \
       azureOpenAiDeployment=computer-use-preview \
-      foundryProjectEndpoint=https://foundry1-fmm3i2qnm7roo.services.ai.azure.com/api/projects/semantic-caching-foundry1 \
+      foundryProjectEndpoint=https://<your-foundry>.services.ai.azure.com/api/projects/semantic-caching-foundry1 \
       foundryModelDeploymentName=computer-use-preview \
-      zavaAirUrl=https://azcagsuqive4sc3tm.braverock-d5a3ef65.eastus2.azurecontainerapps.io/
+      zavaAirUrl=https://<your-webapp>.<your-env>.eastus2.azurecontainerapps.io/
 ```
 
 **Force restart / redeploy after config changes:**
 
 ```bash
 az containerapp update \
-  --subscription   32e739cb-7b23-4259-a180-e1e0e69b974d \
+  --subscription   <your-subscription-id> \
   --resource-group rg-complaints \
   --name           cua-lunarair \
-  --image          azacrgsuqive4sc3tm.azurecr.io/cua-lunarair:latest \
+  --image          <your-acr>.azurecr.io/cua-lunarair:latest \
   --set-env-vars   FORCE_RESTART="$(date +%s)"
 ```
 

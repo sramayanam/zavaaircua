@@ -16,9 +16,10 @@ import sys
 from datetime import datetime, timezone
 
 # ── Azure config ─────────────────────────────────────────────────────────────
-SUBSCRIPTION  = "32e739cb-7b23-4259-a180-e1e0e69b974d"
-ACCOUNT       = "aaaorgcuastore"
-QUEUE         = "cua-agent-jobs"
+import os
+SUBSCRIPTION  = os.environ["AZURE_SUBSCRIPTION_ID"]
+ACCOUNT       = os.environ["AZURE_STORAGE_ACCOUNT_NAME"]
+QUEUE         = os.getenv("AZURE_STORAGE_QUEUE_NAME", "cua-agent-jobs")
 
 # ── Jobs ─────────────────────────────────────────────────────────────────────
 JOBS = [

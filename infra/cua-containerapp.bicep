@@ -4,7 +4,7 @@
 //
 // Deploy manually (cross-subscription from main azd env):
 //   az deployment group create \
-//     --subscription 32e739cb-7b23-4259-a180-e1e0e69b974d \
+//     --subscription <your-subscription-id> \
 //     --resource-group rg-complaints \
 //     --template-file infra/cua-containerapp.bicep \
 //     --parameters \
@@ -24,15 +24,17 @@ param acrLoginServer string
 @description('Fully-qualified CUA container image reference')
 param cuaImage string
 
-// ── Existing managed environment (eastus2, rg-complaints) ──────────────────
-var managedEnvironmentId = '/subscriptions/32e739cb-7b23-4259-a180-e1e0e69b974d/resourceGroups/rg-complaints/providers/Microsoft.App/managedEnvironments/azcaegsuqive4sc3tm'
+@description('Resource ID of the existing managed environment')
+param managedEnvironmentId string
 
-// ── User-Assigned Managed Identity (cross-subscription) ────────────────────
-var uamiResourceId = '/subscriptions/aa8123d8-cdcc-443a-a2a1-a0ed191da95c/resourceGroups/rg-sc/providers/Microsoft.ManagedIdentity/userAssignedIdentities/aaaorguamgdidentity'
-var uamiClientId = '7f12934d-08b8-402b-8c1d-8529efd4f8c1'
+@description('Resource ID of the user-assigned managed identity')
+param uamiResourceId string
 
-// ── Azure Storage (aaaorgcuastore) ──────────────────────────────────────────
-param storageAccountName string = 'aaaorgcuastore'
+@description('Client ID of the user-assigned managed identity')
+param uamiClientId string
+
+// ── Azure Storage ────────────────────────────────────────────────────────────
+param storageAccountName string
 param blobContainerName string = 'cua-screenshots'
 param storageQueueName string = 'cua-agent-jobs'
 param storageTableName string = 'cuaJobStatus'

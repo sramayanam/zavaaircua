@@ -26,7 +26,7 @@ param dbHost string = 'aaaorgpgflexserver.postgres.database.azure.com'
 param dbName string = 'airlines'
 
 @description('PostgreSQL user')
-param dbUser string = 'adminsrram'
+param dbUser string
 
 @secure()
 @description('PostgreSQL password')
@@ -36,7 +36,7 @@ param dbPassword string
 param dbSchema string = 'custcomplaints'
 
 @description('CUA Container App base URL')
-param cuaApiUrl string = 'https://cua-lunarair.braverock-d5a3ef65.eastus2.azurecontainerapps.io'
+param cuaApiUrl string
 
 // ── Resource token for unique naming ────────────────────────────────────────
 var resourceToken = uniqueString(subscription().id, location, environmentName)
@@ -109,7 +109,7 @@ module logicapp 'logicapp.bicep' = {
 
 module logicappRbac 'logicapp-rbac.bicep' = {
   name: 'logicapp-rbac'
-  // Deploy to rg-databases because aaaorgcuastore lives there;
+  // Deploy to rg-databases where the storage account lives;
   // role assignments must be scoped to the same RG as the target resource.
   scope: resourceGroup('rg-databases')
   params: {
@@ -119,7 +119,7 @@ module logicappRbac 'logicapp-rbac.bicep' = {
 
 module eventgrid 'eventgrid.bicep' = {
   name: 'eventgrid'
-  // Deploy to rg-databases because aaaorgcuastore (the event source) lives there
+  // Deploy to rg-databases because the Event Grid source storage account lives there
   scope: resourceGroup('rg-databases')
   params: {
     location: location

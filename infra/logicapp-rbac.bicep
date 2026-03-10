@@ -12,11 +12,11 @@
 @description('Principal ID of the Logic App system-assigned managed identity')
 param logicAppPrincipalId string
 
-@description('Storage account name (aaaorgcuastore) – must already exist in this resource group')
-param storageAccountName string = 'aaaorgcuastore'
+@description('Storage account name – must already exist in this resource group')
+param storageAccountName string
 
-// This module is deployed to rg-databases (where aaaorgcuastore lives),
-// so no cross-RG scope is needed on the existing reference.
+// This module is deployed to rg-databases (where the storage account lives),
+// No cross-RG scope is needed on the existing reference.
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {
   name: storageAccountName
 }

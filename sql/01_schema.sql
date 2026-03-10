@@ -1,13 +1,13 @@
 -- ============================================================================
 -- Lunar Air Customer Complaints – Schema Setup
 -- ============================================================================
--- Server : aaaorgpgflexserver.postgres.database.azure.com
+-- Server : <your-pg-server>.postgres.database.azure.com
 -- Database: airlines
--- User    : adminsrram
+-- User    : <your-db-user>
 -- Schema  : custcomplaints
 --
 -- Connect with:
---   psql "host=aaaorgpgflexserver.postgres.database.azure.com dbname=airlines user=adminsrram sslmode=require"
+--   psql "host=<your-pg-server>.postgres.database.azure.com dbname=airlines user=<your-db-user> sslmode=require"
 --
 -- Run this file first:
 --   \i sql/01_schema.sql

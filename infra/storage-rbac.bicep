@@ -1,22 +1,22 @@
 // ============================================================================
-// RBAC role assignments for UAMI on the existing storage account (aaaorgcuastore).
+// RBAC role assignments for UAMI on the existing storage account.
 //
 // These roles are required for the CUA Container App to access:
 //   – Azure Blob Storage  (screenshot uploads)
 //   – Azure Queue Storage (job dispatch)
 //   – Azure Table Storage (job status)
 //
-// Deploy once (run in the subscription/RG that owns aaaorgcuastore):
+// Deploy once (run in the subscription/RG that owns the storage account):
 //   az deployment group create \
-//     --resource-group <rg-containing-aaaorgcuastore> \
+//     --resource-group <rg-containing-storage-account> \
 //     --template-file infra/storage-rbac.bicep
 // ============================================================================
 
 @description('Name of the existing storage account to grant access on.')
-param storageAccountName string = 'aaaorgcuastore'
+param storageAccountName string
 
 @description('Principal ID of the User-Assigned Managed Identity.')
-param uamiPrincipalId string = '1551b046-33aa-45ac-a523-86934d597339'
+param uamiPrincipalId string
 
 // ── Reference the existing storage account ───────────────────────────────────
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {

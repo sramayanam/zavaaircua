@@ -23,7 +23,7 @@
     },
     "storageAccountName": {
       "type": "string",
-      "defaultValue": "aaaorgcuastore",
+      "defaultValue": "<your-storage-account>",
       "metadata": {
         "description": "Storage account name"
       }

@@ -2,11 +2,11 @@
 // Event Grid – Storage Account → Logic App HTTP Trigger
 //
 // Creates:
-//   • System Topic on aaaorgcuastore (Microsoft.Storage.StorageAccounts)
+//   • System Topic on the storage account (Microsoft.Storage.StorageAccounts)
 //   • Event Subscription filtering on Microsoft.Storage.BlobCreated
 //     for the payloads container → webhooks to the Logic App HTTP trigger
 //
-// Deploy scope: rg-databases (where aaaorgcuastore lives)
+// Deploy scope: rg-databases (where the storage account lives)
 // ============================================================================
 
 @description('Azure region')
@@ -16,14 +16,15 @@ param location string
 param resourceToken string
 
 @description('Storage account name')
-param storageAccountName string = 'aaaorgcuastore'
+param storageAccountName string
 
 @description('Logic App HTTP trigger callback URL (from logicapp module output)')
 param logicAppCallbackUrl string
 
-// ── Event Grid System Topic on aaaorgcuastore (pre-existing) ─────────────────
+// ── Event Grid System Topic (pre-existing) ────────────────────────────────────
 // One system topic per storage account is allowed; reference the existing one.
-param systemTopicName string = 'aaaorgcuastore-0a19e10e-a846-43ca-9c4e-b80bab455097'
+@description('Name of the pre-existing Event Grid system topic for the storage account')
+param systemTopicName string
 
 resource systemTopic 'Microsoft.EventGrid/systemTopics@2022-06-15' existing = {
   name: systemTopicName
