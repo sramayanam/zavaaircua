@@ -1,0 +1,15 @@
+{
+  "id": "sim_create_baggage_001",
+  "name": "Simulated Create – Delayed Baggage",
+  "scenario_description": "Local simulated create scenario for testing (no hardcoded mode).",
+  "passenger_name": "Ava Carter",
+  "passenger_email": "ava.carter@example.com",
+  "passenger_phone": "+1-555-0101",
+  "flight_number": "ZA101",
+  "pnr": "PNR-SIM-3001",
+  "category": "Baggage",
+  "subcategory": "Delayed Baggage",
+  "severity": "Medium",
+  "agent": "Selene Park",
+  "complaint_description": "My checked bag did not arrive on time and there was no baggage desk update for more than 45 minutes."
+}

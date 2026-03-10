@@ -1,0 +1,15 @@
+{
+  "id": "sim_create_wheelchair_001",
+  "name": "Simulated Create – Wheelchair Service Failure",
+  "scenario_description": "New passenger Sam Reeves was left without wheelchair assistance on ZA202. Tests Special Assistance / Critical severity path with a new passenger.",
+  "passenger_name": "Sam Reeves",
+  "passenger_email": "sam.reeves@example.com",
+  "passenger_phone": "+1-555-0201",
+  "flight_number": "ZA202",
+  "pnr": "PNR-SIM-7001",
+  "category": "Special Assistance",
+  "subcategory": "Wheelchair Service Failure",
+  "severity": "Critical",
+  "agent": "Cassidy Moon",
+  "complaint_description": "I pre-booked wheelchair assistance for flight ZA202 from Los Angeles to Seattle. No wheelchair was available at the gate upon arrival. I was forced to walk unaided to the aircraft despite a recent knee surgery. This caused significant pain and constitutes a failure in duty of care."
+}

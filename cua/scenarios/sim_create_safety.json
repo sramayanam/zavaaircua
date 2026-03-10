@@ -1,0 +1,15 @@
+{
+  "id": "sim_create_safety_001",
+  "name": "Simulated Create – Safety Maintenance Concern",
+  "scenario_description": "Emma Brown (Platinum) observed a maintenance issue on ZA101. Tests Safety / Critical severity path.",
+  "passenger_name": "Emma Brown",
+  "passenger_email": "emma.brown@example.com",
+  "passenger_phone": "+1-555-0105",
+  "flight_number": "ZA101",
+  "pnr": "PNR-SIM-5001",
+  "category": "Safety",
+  "subcategory": "Maintenance Issue Observed",
+  "severity": "Critical",
+  "agent": "Luna Vasquez",
+  "complaint_description": "During boarding on flight ZA101 I noticed a visible crack along the overhead compartment panel above row 14. I reported it to a crew member who said it would be noted but no action was taken before departure. This is a serious structural concern that should have grounded the aircraft."
+}

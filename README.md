@@ -1,0 +1,158 @@
+# Lunar Air Complaints
+
+A full-stack customer complaints management system for **Lunar Air**, built with Node.js/Express, PostgreSQL (Azure Flexible Server), and a **Computer Use Agent (CUA)** that automates browser interactions using Azure OpenAI's `computer-use-preview` model.
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Azure Container Apps                    │
+│                                                             │
+│  ┌──────────────────────┐   ┌──────────────────────────┐   │
+│  │   Web App (Node.js)  │   │   CUA Agent (FastAPI)    │   │
+│  │   Express REST API   │   │   Azure OpenAI CUA loop  │   │
+│  │   + HTML dashboard   │   │   Playwright browser     │   │
+│  └──────────┬───────────┘   └──────────────────────────┘   │
+│             │                          ▲                     │
+└─────────────┼──────────────────────────┼─────────────────────┘
+              │                          │
+   ┌──────────▼──────────┐    ┌──────────┴──────────┐
+   │  Azure PostgreSQL   │    │   Azure Storage     │
+   │  Flexible Server    │    │   Queue  │  Blobs   │
+   └─────────────────────┘    └─────────────────────┘
+                                         ▲
+                              ┌──────────┴──────────┐
+                              │  Azure Logic App    │
+                              │  (Event Grid →      │
+                              │   Queue trigger)    │
+                              └─────────────────────┘
+```
+
+---
+
+## Repository Layout
+
+```
+.
+├── server.js               # Express REST API
+├── db.js                   # PostgreSQL connection pool
+├── public/
+│   └── index.html          # Complaints dashboard SPA
+├── cua/
+│   ├── app.py              # FastAPI CUA backend (WebSocket + Playwright)
+│   ├── static/index.html   # CUA control panel SPA
+│   ├── scenarios/          # Pre-built complaint scenarios (JSON)
+│   ├── requirements.txt
+│   └── DOCUMENTATION.md    # Detailed CUA code documentation
+├── infra/                  # Bicep IaC (Azure Container Apps, ACR, Storage, …)
+├── sql/                    # Schema, tables, seed data
+├── samples/                # Sample event payloads + data generators
+├── computer-use-agent.ts   # TypeScript CUA prototype
+├── azure.yaml              # azd service configuration
+├── Dockerfile              # Web app container image
+└── .env.example            # Required environment variables (template)
+```
+
+---
+
+## Prerequisites
+
+| Tool | Version |
+|------|---------|
+| Node.js | 20+ |
+| Python | 3.12+ |
+| Azure Developer CLI (`azd`) | latest |
+| Azure CLI (`az`) | latest |
+
+---
+
+## Local Development
+
+### 1. Web app (Express)
+
+```bash
+cp .env.example .env        # fill in your Azure PostgreSQL credentials
+npm install
+npm run dev                 # starts on PORT=3000 with --watch
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+### 2. CUA agent (FastAPI)
+
+```bash
+cd cua
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+cp .env.example .env        # fill in Azure OpenAI + Storage credentials
+uvicorn app:app --reload --port 8501
+```
+
+Open [http://localhost:8501](http://localhost:8501).
+
+---
+
+## Database Setup
+
+Run the SQL scripts in order against your Azure PostgreSQL Flexible Server:
+
+```bash
+psql "host=$DB_HOST port=5432 dbname=$DB_NAME user=$DB_USER sslmode=require" \
+  -f sql/01_schema.sql \
+  -f sql/02_tables.sql \
+  -f sql/03_inserts.sql
+```
+
+---
+
+## Azure Deployment
+
+The project uses the [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/) with Bicep templates in `infra/`.
+
+```bash
+azd auth login
+azd up              # provision infrastructure + deploy both container images
+```
+
+Resources provisioned:
+- Azure Container Apps (web + CUA services)
+- Azure Container Registry
+- Azure PostgreSQL Flexible Server
+- Azure Storage Account (queue, table, blob)
+- Azure Logic App (Event Grid → queue pipeline)
+- Azure Monitor / Log Analytics
+
+---
+
+## Environment Variables
+
+Copy `.env.example` → `.env` and populate:
+
+| Variable | Description |
+|----------|-------------|
+| `DB_HOST` | PostgreSQL server hostname |
+| `DB_NAME` | Database name |
+| `DB_USER` | Database username |
+| `DB_PASSWORD` | Database password |
+| `DB_SCHEMA` | Schema name (default: `custcomplaints`) |
+| `PORT` | Express server port (default: `3000`) |
+
+For the CUA agent, copy `cua/.env.example` → `cua/.env`:
+
+| Variable | Description |
+|----------|-------------|
+| `AZURE_OPENAI_BASE_URL` | Azure OpenAI endpoint |
+| `AZURE_OPENAI_DEPLOYMENT` | Model deployment name |
+| `ZAVA_AIR_URL` | URL of the complaints dashboard for the agent to browse |
+| `AZURE_STORAGE_ACCOUNT_NAME` | Storage account for queue-driven mode |
+| `AZURE_CLIENT_ID` | User-assigned managed identity client ID |
+
+---
+
+## License
+
+MIT

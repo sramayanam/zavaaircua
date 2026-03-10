@@ -1,0 +1,16 @@
+{
+  "mode": "create",
+  "id": "SIM-C-SAF-004",
+  "name": "Sim: Safety - Oxygen mask dropped during non-emergency on ZA707",
+  "scenario_description": "An overhead oxygen mask deployed unexpectedly during cruise flight, causing passenger panic. Cabin crew took several minutes to respond and provided no safety briefing afterward.",
+  "passenger_name": "Fatima Müller",
+  "passenger_email": "fatima.muller@example.com",
+  "passenger_phone": "+1-555-0113",
+  "flight_number": "ZA707",
+  "pnr": "PNR-SIM-004",
+  "category": "Safety",
+  "subcategory": "Safety Protocol Concern",
+  "severity": "Critical",
+  "agent": "Luna Vasquez",
+  "complaint_description": "During flight ZA707 (seat 22B) at approximately 35,000 feet on March 9 2026 the oxygen mask above my seat dropped without warning. No depressurisation alarm was sounding and other passengers masks did not deploy. I was alarmed and pushed the call button. It took approximately 4 minutes before a flight attendant arrived who simply pushed the mask back and said it happens sometimes. No safety announcement was made to the cabin. I am filing this complaint for mandatory safety reporting purposes and expect a written explanation from the safety team within 48 hours."
+}

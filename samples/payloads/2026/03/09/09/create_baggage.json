@@ -1,0 +1,16 @@
+{
+  "mode": "create",
+  "id": "SIM-C-BGA-001",
+  "name": "Sim: Baggage - Lost luggage on ZA554",
+  "scenario_description": "Passenger reports checked bag was not transferred at San Francisco. Bag last scanned at origin but did not arrive in Seattle.",
+  "passenger_name": "Kenji Iwata",
+  "passenger_email": "kenji.iwata@example.com",
+  "passenger_phone": "+1-555-0109",
+  "flight_number": "ZA554",
+  "pnr": "PNR-SIM-001",
+  "category": "Baggage",
+  "subcategory": "Lost Baggage",
+  "severity": "High",
+  "agent": "Selene Park",
+  "complaint_description": "I flew ZA554 on March 9 2026 from San Francisco to Seattle. My checked bag was scanned at departure but never arrived at baggage claim in Seattle. The baggage office filed PIR reference BGA-554-001. I have a business meeting tomorrow and have no equipment. I need Lunar Air to locate my bag within 24 hours or provide compensation for emergency purchases."
+}

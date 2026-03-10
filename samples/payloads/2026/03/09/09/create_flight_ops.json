@@ -1,0 +1,16 @@
+{
+  "mode": "create",
+  "id": "SIM-C-FLO-002",
+  "name": "Sim: Flight Operations - 4-hour delay with no updates on ZA606",
+  "scenario_description": "Flight delayed 4+ hours due to maintenance without passenger notification. Gate agents provided no information. Passenger missed connecting flight.",
+  "passenger_name": "Diego Nakamura",
+  "passenger_email": "diego.nakamura@example.com",
+  "passenger_phone": "+1-555-0114",
+  "flight_number": "ZA606",
+  "pnr": "PNR-SIM-002",
+  "category": "Flight Operations",
+  "subcategory": "Flight Delay",
+  "severity": "High",
+  "agent": "Atlas Rivera",
+  "complaint_description": "Flight ZA606 departing Denver was held at the gate for over four hours on March 9 2026 due to an unscheduled maintenance check. No announcements were made at the gate and the app never updated from Delayed. I missed my connecting flight to Los Angeles and had to book a hotel overnight at my own expense. I am requesting full reimbursement of the $380 hotel stay plus meal vouchers, and a formal explanation of why no customer communications were issued."
+}

@@ -1,0 +1,14 @@
+{
+  "mode": "update",
+  "id": "SIM-U-BGA-001",
+  "name": "Sim: Update baggage complaint - bag located, case resolved",
+  "description": "Updating Ava Carter's delayed baggage complaint on ZA101: bag was located and delivered. Upgrading status to Resolved.",
+  "target_passenger_name": "Ava Carter",
+  "target_flight_number": "ZA101",
+  "target_pnr": "PNR1001",
+  "new_status": "Resolved",
+  "new_severity": "Low",
+  "new_agent": "Selene Park",
+  "new_score": "4.5",
+  "new_notes": "Delayed bag located at Los Angeles baggage services. Bag delivered to passenger address on March 9 2026. Passenger confirmed receipt via SMS. Emergency purchase receipts submitted and $150 reimbursement approved and credited to original payment method. Case closed with passenger satisfaction confirmed."
+}

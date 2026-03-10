@@ -1,0 +1,13 @@
+{
+  "id": "sim_update_case_001",
+  "name": "Simulated Update – Resolve Existing Complaint",
+  "description": "Local simulated update scenario for testing (no hardcoded mode).",
+  "target_passenger_name": "Ava Carter",
+  "target_flight_number": "ZA101",
+  "target_pnr": "PNR1001",
+  "new_status": "Resolved",
+  "new_severity": "Low",
+  "new_agent": "Selene Park",
+  "new_score": "4.0",
+  "new_notes": "Issue reviewed, baggage traced, and customer notified with confirmed delivery ETA."
+}

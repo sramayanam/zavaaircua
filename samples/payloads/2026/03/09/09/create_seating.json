@@ -1,0 +1,16 @@
+{
+  "mode": "create",
+  "id": "SIM-C-SEA-005",
+  "name": "Sim: Seating - Seat recliner broken on ZA808",
+  "scenario_description": "Passenger found seat recliner mechanism completely broken (stuck upright). Cabin crew said nothing could be done mid-flight.",
+  "passenger_name": "Chloe Kim",
+  "passenger_email": "chloe.kim@example.com",
+  "passenger_phone": "+1-555-0111",
+  "flight_number": "ZA808",
+  "pnr": "PNR-SIM-005",
+  "category": "Seating",
+  "subcategory": "Seat Malfunction",
+  "severity": "Medium",
+  "agent": "Nova Singh",
+  "complaint_description": "On flight ZA808 on March 9 2026 I was assigned seat 34A. After boarding I found the seat recliner lever was broken off and the seat cannot recline at all. It was a long haul flight to Tokyo. When I reported this to the cabin crew before pushback they said maintenance had been informed but no alternative seat was offered because the flight was full. I sat upright for the entire flight. I am requesting partial fare compensation and confirmation that the aircraft has been taken out of service for repair."
+}

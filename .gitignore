@@ -1,0 +1,21 @@
+# Secrets
+.env
+cua/.env
+
+# Dependencies
+node_modules/
+cua/.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Auto-generated screenshots from CUA runs
+cua/screenshots/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/

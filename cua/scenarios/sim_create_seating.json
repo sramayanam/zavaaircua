@@ -1,0 +1,15 @@
+{
+  "id": "sim_create_seating_001",
+  "name": "Simulated Create – Seat Assignment Error",
+  "scenario_description": "Mia Lopez was moved to an inferior seat on ZA303 without consent. Tests Seating / Low severity path.",
+  "passenger_name": "Mia Lopez",
+  "passenger_email": "mia.lopez@example.com",
+  "passenger_phone": "+1-555-0103",
+  "flight_number": "ZA303",
+  "pnr": "PNR-SIM-8001",
+  "category": "Seating",
+  "subcategory": "Seat Assignment Error",
+  "severity": "Low",
+  "agent": "Nova Singh",
+  "complaint_description": "I had selected seat 12A (window) for flight ZA303 at booking but was reassigned to 22C (middle seat) at check-in without any explanation or compensation. The gate agent told me my original seat was given to another passenger and refused to explain further."
+}

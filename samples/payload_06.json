@@ -1,0 +1,20 @@
+{
+  "records": {
+    "custcomplaints": [],
+    "passengers": [
+      {
+        "operation": "insert",
+        "passenger_id": 5,
+        "first_name": "Zara",
+        "last_name": "Osei",
+        "email": "zara.osei@example.com",
+        "phone": "+1-415-882-3301",
+        "country": "Ghana",
+        "frequent_flyer_tier": "None",
+        "total_flights": 1,
+        "member_since": "2026-02-22T00:00:00"
+      }
+    ],
+    "flights": []
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "records": {
+    "custcomplaints": [],
+    "passengers": [],
+    "flights": [
+      {
+        "operation": "update",
+        "flight_id": 24,
+        "flight_number": "LA124",
+        "origin_code": "NRT",
+        "origin_city": "Tokyo",
+        "destination_code": "LAX",
+        "destination_city": "Los Angeles",
+        "scheduled_departure": "2026-02-22T11:00:00Z",
+        "actual_departure": "2026-02-22T11:15:00Z",
+        "scheduled_arrival": "2026-02-23T06:30:00Z",
+        "actual_arrival": null,
+        "aircraft_type": "Moonbeam A350",
+        "flight_status": "Departed",
+        "delay_minutes": 15
+      }
+    ]
+  }
+}

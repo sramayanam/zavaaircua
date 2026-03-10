@@ -1,0 +1,15 @@
+{
+  "id": "sim_create_flight_ops_001",
+  "name": "Simulated Create – Flight Cancellation",
+  "scenario_description": "Liam Kim's ZA404 Chicago→Miami flight was cancelled. Tests Flight Operations / High severity path.",
+  "passenger_name": "Liam Kim",
+  "passenger_email": "liam.kim@example.com",
+  "passenger_phone": "+1-555-0104",
+  "flight_number": "ZA404",
+  "pnr": "PNR-SIM-4004",
+  "category": "Flight Operations",
+  "subcategory": "Flight Cancellation",
+  "severity": "High",
+  "agent": "Atlas Rivera",
+  "complaint_description": "My flight ZA404 from Chicago to Miami was cancelled without any prior notice. I only found out at the gate and was not offered any rebooking assistance or meal vouchers despite a 6-hour wait at the airport."
+}

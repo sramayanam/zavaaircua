@@ -1,0 +1,12 @@
+{
+  "records": {
+    "custcomplaints": [],
+    "passengers": [
+      {
+        "operation": "delete",
+        "passenger_id": 3
+      }
+    ],
+    "flights": []
+  }
+}

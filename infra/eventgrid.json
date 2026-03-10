@@ -1,0 +1,85 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.37.4.10188",
+      "templateHash": "4850544888482017059"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region"
+      }
+    },
+    "resourceToken": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique resource token for naming"
+      }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "defaultValue": "aaaorgcuastore",
+      "metadata": {
+        "description": "Storage account name"
+      }
+    },
+    "logicAppCallbackUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Logic App HTTP trigger callback URL (from logicapp module output)"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.EventGrid/systemTopics",
+      "apiVersion": "2022-06-15",
+      "name": "[format('evgt-payloads-{0}', parameters('resourceToken'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "source": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]",
+        "topicType": "Microsoft.Storage.StorageAccounts"
+      }
+    },
+    {
+      "type": "Microsoft.EventGrid/systemTopics/eventSubscriptions",
+      "apiVersion": "2022-06-15",
+      "name": "[format('{0}/{1}', format('evgt-payloads-{0}', parameters('resourceToken')), format('sub-la-payloads-{0}', parameters('resourceToken')))]",
+      "properties": {
+        "filter": {
+          "includedEventTypes": [
+            "Microsoft.Storage.BlobCreated"
+          ],
+          "subjectBeginsWith": "/blobServices/default/containers/payloads/blobs/"
+        },
+        "destination": {
+          "endpointType": "WebHook",
+          "properties": {
+            "endpointUrl": "[parameters('logicAppCallbackUrl')]",
+            "maxEventsPerBatch": 1,
+            "preferredBatchSizeInKilobytes": 64
+          }
+        },
+        "eventDeliverySchema": "EventGridSchema",
+        "retryPolicy": {
+          "maxDeliveryAttempts": 3,
+          "eventTimeToLiveInMinutes": 60
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.EventGrid/systemTopics', format('evgt-payloads-{0}', parameters('resourceToken')))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "systemTopicName": {
+      "type": "string",
+      "value": "[format('evgt-payloads-{0}', parameters('resourceToken'))]"
+    }
+  }
+}

@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zava Air – AI Complaint Agent</title>
+<style>
+  :root {
+    --bg:       #0f0f1a;
+    --surface:  #1a1a2e;
+    --card:     #22223a;
+    --border:   #2e2e4a;
+    --text:     #e0e0f0;
+    --muted:    #8888aa;
+    --accent:   #6c63ff;
+    --accent2:  #8b83ff;
+    --green:    #4caf50;
+    --red:      #f44336;
+    --orange:   #ff9800;
+    --radius:   10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+  }
+
+  /* ── Header ──────────────────────────────────────────────────────────── */
+  header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 14px 28px; display: flex; align-items: center; gap: 16px;
+    flex-shrink: 0;
+  }
+  header h1 { font-size: 18px; font-weight: 700; }
+  header h1 span { color: var(--accent); }
+  .header-badge {
+    font-size: 11px; padding: 3px 10px; border-radius: 12px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
+  }
+  .badge-idle    { background: var(--border); color: var(--muted); }
+  .badge-running { background: var(--accent); color: #fff; animation: pulse 1.5s infinite; }
+  .badge-done    { background: var(--green); color: #fff; }
+  .badge-error   { background: var(--red); color: #fff; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: .6; }
+  }
+
+  /* ── Main layout ─────────────────────────────────────────────────────── */
+  .main {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    flex: 1; overflow: hidden;
+  }
+
+  /* ── Left panel (Prompt) ─────────────────────────────────────────────── */
+  .panel-left {
+    background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .panel-header {
+    padding: 14px 18px; font-size: 13px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .8px; color: var(--muted);
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .panel-body { flex: 1; overflow-y: auto; padding: 16px 18px; }
+
+  .section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--accent); margin-bottom: 8px;
+  }
+  .system-prompt {
+    width: 100%; min-height: 80px; max-height: 120px; resize: vertical;
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px; font-size: 12px;
+    font-family: 'SF Mono', 'Consolas', monospace; line-height: 1.5;
+  }
+  .system-prompt:focus { outline: none; border-color: var(--accent); }
+
+  .browse-filter-assist {
+    margin-top: 14px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: rgba(108,99,255,.08);
+  }
+  .browse-filter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .browse-filter-assist label {
+    font-size: 11px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+  }
+  .browse-filter-assist select,
+  .browse-filter-assist input[type="date"] {
+    width: 100%;
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 12px;
+    color-scheme: dark;
+  }
+  .chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .chip {
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  .chip:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+  .chip.active {
+    background: rgba(108,99,255,.22);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .chip-hint {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  /* Task list */
+  .task-list { list-style: none; margin-top: 12px; }
+  .task-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 8px; font-size: 13px;
+    line-height: 1.5; transition: border-color .2s;
+  }
+  .task-item:hover { border-color: var(--accent); }
+  .task-num {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--border); color: var(--muted); font-size: 11px;
+    font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .task-item.active .task-num { background: var(--accent); color: #fff; }
+  .task-item.completed .task-num { background: var(--green); color: #fff; }
+  .task-item.completed .task-num::after { content: '✓'; }
+  .task-text { flex: 1; }
+  .task-text input {
+    width: 100%; background: transparent; border: none; color: var(--text);
+    font-size: 13px; font-family: inherit; line-height: 1.5;
+  }
+  .task-text input:focus { outline: none; }
+  .task-text input[readonly] { color: var(--muted); cursor: default; }
+
+  .task-actions { margin-top: 8px; display: flex; gap: 8px; }
+  .btn-add-task {
+    background: transparent; border: 1px dashed var(--border); color: var(--muted);
+    padding: 6px 14px; border-radius: var(--radius); cursor: pointer;
+    font-size: 12px; transition: all .2s;
+  }
+  .btn-add-task:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-remove {
+    background: transparent; border: none; color: var(--muted); cursor: pointer;
+    font-size: 14px; padding: 0 4px; line-height: 22px;
+  }
+  .btn-remove:hover { color: var(--red); }
+
+  /* Config row */
+  .config-row {
+    margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap;
+  }
+  .config-field label {
+    font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px;
+  }
+  .config-field input {
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 10px; font-size: 12px; width: 100%;
+  }
+  .config-field input:focus { outline: none; border-color: var(--accent); }
+
+  /* Run button */
+  .run-area { padding: 14px 18px; border-top: 1px solid var(--border); flex-shrink: 0; }
+  .btn-run {
+    width: 100%; padding: 12px; border: none; border-radius: var(--radius);
+    background: var(--accent); color: #fff; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: background .2s; letter-spacing: .5px;
+  }
+  .btn-run:hover { background: var(--accent2); }
+  .btn-run:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── Mode selector ───────────────────────────────────────────────────── */
+  .mode-bar {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .mode-btn {
+    flex: 1; padding: 10px 8px; text-align: center;
+    background: transparent; border: none; color: var(--muted);
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    text-transform: uppercase; letter-spacing: .6px;
+    border-bottom: 2px solid transparent; transition: all .2s;
+  }
+  .mode-btn:hover { color: var(--text); background: rgba(108,99,255,.08); }
+  .mode-btn.active {
+    color: var(--accent); border-bottom-color: var(--accent);
+    background: rgba(108,99,255,.1);
+  }
+
+  /* Scenario picker */
+  .scenario-picker {
+    padding: 10px 18px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .scenario-picker select {
+    width: 100%; background: var(--card); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 7px 10px; font-size: 12px; cursor: pointer;
+  }
+  .scenario-picker select:focus { outline: none; border-color: var(--accent); }
+  .scenario-desc {
+    margin-top: 6px; font-size: 11px; color: var(--muted);
+    line-height: 1.5; font-style: italic;
+  }
+
+  /* ── Right panel (Screenshots + Logs) ────────────────────────────────── */
+  .panel-right {
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* Screenshot viewer */
+  .viewer {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+    background: var(--bg);
+  }
+  .viewer-header {
+    padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .viewer-header .panel-header { border-bottom: none; padding: 0; }
+  .iter-label {
+    font-size: 13px; color: var(--accent); font-weight: 600;
+  }
+  .action-label {
+    font-size: 12px; color: var(--muted); font-family: 'SF Mono', monospace;
+  }
+  .viewer-img {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    overflow: hidden; padding: 12px; position: relative;
+  }
+  .viewer-img img {
+    max-width: 100%; max-height: 100%; border-radius: var(--radius);
+    border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,.5);
+  }
+  .viewer-img .placeholder {
+    color: var(--muted); font-size: 14px; text-align: center;
+  }
+
+  /* Timeline strip */
+  .timeline {
+    flex-shrink: 0; border-top: 1px solid var(--border);
+    padding: 10px 16px; display: flex; gap: 8px; overflow-x: auto;
+    background: var(--surface);
+  }
+  .timeline-thumb {
+    width: 80px; height: 50px; border-radius: 6px; overflow: hidden;
+    border: 2px solid var(--border); cursor: pointer; flex-shrink: 0;
+    transition: border-color .2s; position: relative;
+  }
+  .timeline-thumb:hover { border-color: var(--accent); }
+  .timeline-thumb.active { border-color: var(--accent); box-shadow: 0 0 8px rgba(108,99,255,.5); }
+  .timeline-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .timeline-thumb .thumb-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,.7); color: #fff; font-size: 9px;
+    text-align: center; padding: 2px 0;
+  }
+
+  /* Log panel */
+  .log-panel {
+    flex-shrink: 0; height: 160px; border-top: 1px solid var(--border);
+    background: var(--surface); display: flex; flex-direction: column;
+  }
+  .log-panel .panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .log-body {
+    flex: 1; overflow-y: auto; padding: 8px 16px;
+    font-family: 'SF Mono', 'Consolas', monospace; font-size: 11px;
+    line-height: 1.8;
+  }
+  .log-entry { color: var(--muted); }
+  .log-entry.action { color: var(--text); }
+  .log-entry.reasoning { color: var(--orange); }
+  .log-entry.error { color: var(--red); }
+  .log-entry.done { color: var(--green); font-weight: 700; }
+
+  /* Summary overlay */
+  .summary-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .summary-overlay.show { display: flex; }
+  .summary-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px 32px; max-width: 600px; width: 90%;
+    box-shadow: 0 8px 40px rgba(0,0,0,.6);
+  }
+  .summary-card h2 { margin-bottom: 14px; font-size: 18px; }
+  .summary-card h2 span { color: var(--green); }
+  .summary-card p { font-size: 14px; line-height: 1.7; color: var(--text); white-space: pre-wrap; }
+  .summary-card .close-btn {
+    margin-top: 18px; padding: 8px 20px; background: var(--accent);
+    color: #fff; border: none; border-radius: 8px; cursor: pointer;
+    font-size: 13px; font-weight: 600;
+  }
+
+  /* Action label truncation */
+  .viewer-header { min-width: 0; }
+  .action-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+
+  /* Thin scrollbars — standard properties for Firefox / Chrome 121+;
+     webkit fallback rules below cover older Chrome, Safari, Samsung Internet */
+  @supports (scrollbar-width: thin) {
+    .panel-body, .log-body, .timeline {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+  }
+  .panel-body::-webkit-scrollbar,
+  .log-body::-webkit-scrollbar  { width: 5px; height: 5px; }
+  .timeline::-webkit-scrollbar  { height: 5px; }
+  .panel-body::-webkit-scrollbar-track,
+  .log-body::-webkit-scrollbar-track,
+  .timeline::-webkit-scrollbar-track { background: transparent; }
+  .panel-body::-webkit-scrollbar-thumb,
+  .log-body::-webkit-scrollbar-thumb,
+  .timeline::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── Extracted from inline styles ────────────────────────────────────── */
+  #scenarioPicker,
+  #browseFilterAssist { display: none; }
+
+  .section-title--filter { margin-bottom: 10px; }
+
+  .browse-filter-group-label {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+  }
+
+  .browse-date-row {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: end;
+  }
+
+  .btn-date-today {
+    margin-top: 8px;
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+  }
+
+  .section-title--tasks { margin-top: 18px; }
+
+  .config-field--wide { flex: 1; }
+  .config-field--narrow { width: 80px; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header>
+  <h1><span>Zava Air</span> AI Complaint Agent</h1>
+  <div class="header-badge badge-idle" id="statusBadge">Idle</div>
+</header>
+
+<!-- ── Main ────────────────────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- Left: Prompt config -->
+  <div class="panel-left">
+    <div class="mode-bar">
+      <button type="button" class="mode-btn active" data-mode="browse" onclick="switchMode('browse')">🔍 Browse</button>
+      <button type="button" class="mode-btn" data-mode="create" onclick="switchMode('create')">➕ Create</button>
+      <button type="button" class="mode-btn" data-mode="update" onclick="switchMode('update')">✏️ Update</button>
+    </div>
+    <div class="scenario-picker" id="scenarioPicker">
+      <select id="scenarioSelect" onchange="onScenarioChange()"></select>
+      <div class="scenario-desc" id="scenarioDesc"></div>
+    </div>
+    <div class="panel-header">Prompt & Tasks</div>
+    <div class="panel-body" id="panelBody">
+      <label for="systemPrompt" class="section-title">System Prompt</label>
+      <textarea class="system-prompt" id="systemPrompt"></textarea>
+
+      <div class="browse-filter-assist" id="browseFilterAssist">
+        <div class="section-title section-title--filter">Browse Prefill</div>
+        <div class="browse-filter-grid">
+          <div>
+            <label for="browseStatus">Status</label>
+            <select id="browseStatus">
+              <option value="">Any</option>
+              <option value="Open">Open</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Closed">Closed</option>
+              <option value="Escalated">Escalated</option>
+            </select>
+          </div>
+        </div>
+        <div class="browse-filter-group-label">Severity</div>
+        <div class="chip-wrap" id="browseSeverityChips"></div>
+        <div class="browse-filter-group-label">Category</div>
+        <div class="chip-wrap" id="browseCategoryChips"></div>
+        <div class="browse-date-row">
+          <div>
+            <label for="browseDateFrom">Date From</label>
+            <input type="date" id="browseDateFrom" oninput="browseFilterState.date_from=this.value">
+          </div>
+          <div>
+            <label for="browseDateTo">Date To</label>
+            <input type="date" id="browseDateTo" oninput="browseFilterState.date_to=this.value">
+          </div>
+        </div>
+        <button type="button" class="btn-date-today" onclick="setDateToday()">📅 Today</button>
+      </div>
+
+      <div class="section-title section-title--tasks">Task Steps</div>
+      <ol class="task-list" id="taskList"></ol>
+      <div class="task-actions">
+        <button type="button" class="btn-add-task" onclick="addTask()">+ Add Step</button>
+      </div>
+
+      <div class="config-row">
+        <div class="config-field config-field--wide">
+          <label for="targetUrl">Target URL</label>
+          <input id="targetUrl" type="text">
+        </div>
+        <div class="config-field config-field--narrow">
+          <label for="maxIters">Max Iters</label>
+          <input id="maxIters" type="number" min="1" max="30" value="15">
+        </div>
+      </div>
+    </div>
+    <div class="run-area">
+      <button type="button" class="btn-run" id="btnRun" onclick="startAgent()">Run Agent</button>
+    </div>
+  </div>
+
+  <!-- Right: Screenshots + logs -->
+  <div class="panel-right">
+    <div class="viewer">
+      <div class="viewer-header">
+        <span class="iter-label" id="iterLabel">Waiting…</span>
+        <span class="action-label" id="actionLabel"></span>
+      </div>
+      <div class="viewer-img" id="viewerImg">
+        <div class="placeholder">Screenshots will appear here as the agent works</div>
+      </div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+    <div class="log-panel">
+      <div class="panel-header">
+        <span>Console</span>
+      </div>
+      <div class="log-body" id="logBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Summary overlay -->
+<div class="summary-overlay" id="summaryOverlay">
+  <div class="summary-card">
+    <h2><span>&#10003;</span> Agent Complete</h2>
+    <p id="summaryText"></p>
+    <button type="button" class="close-btn" onclick="closeSummary()">Close</button>
+  </div>
+</div>
+
+<script>
+// ── Constants ─────────────────────────────────────────────────────────────
+const MAX_LOG_LINES = 200;
+
+// ── Cached DOM refs (looked up once, never again) ─────────────────────────
+const $ = id => document.getElementById(id);
+const EL = {
+  statusBadge:    $('statusBadge'),
+  btnRun:         $('btnRun'),
+  panelBody:      $('panelBody'),
+  systemPrompt:   $('systemPrompt'),
+  taskList:       $('taskList'),
+  targetUrl:      $('targetUrl'),
+  maxIters:       $('maxIters'),
+  scenarioPicker: $('scenarioPicker'),
+  scenarioSelect: $('scenarioSelect'),
+  scenarioDesc:   $('scenarioDesc'),
+  browseFilterAssist: $('browseFilterAssist'),
+  browseStatus: $('browseStatus'),
+  browseSeverityChips: $('browseSeverityChips'),
+  browseCategoryChips: $('browseCategoryChips'),
+  viewerImg:      $('viewerImg'),
+  iterLabel:      $('iterLabel'),
+  actionLabel:    $('actionLabel'),
+  timeline:       $('timeline'),
+  logBody:        $('logBody'),
+  summaryOverlay: $('summaryOverlay'),
+  summaryText:    $('summaryText'),
+};
+
+// Persistent viewer img — reuse instead of recreating on every screenshot click
+const _viewerImg    = document.createElement('img');
+const _viewerHolder = EL.viewerImg.querySelector('.placeholder');
+_viewerImg.style.display = 'none';
+EL.viewerImg.appendChild(_viewerImg);
+
+// ── State ─────────────────────────────────────────────────────────────────
+let ws = null;
+let tasks = [];
+let screenshots = [];
+let activeThumbIdx = -1;
+let currentMode = 'browse';
+let allData = null;
+const browseFilterState = { status: '', severities: new Set(), categories: new Set(), date_from: '', date_to: '' };
+
+const BROWSE_SEVERITY_OPTIONS = ['Low', 'Medium', 'High', 'Critical'];
+
+const BROWSE_CATEGORY_OPTIONS = [
+  'Flight Operations',
+  'Seating',
+  'Special Assistance',
+  'Booking & Refunds',
+  'Baggage',
+  'Safety',
+];
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function resetBtn() {
+  EL.btnRun.disabled = false;
+  EL.btnRun.textContent = 'Run Agent';
+}
+
+function renderChips(container, options, stateSet, renderFn) {
+  container.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  options.forEach(val => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip' + (stateSet.has(val) ? ' active' : '');
+    chip.textContent = val;
+    chip.onclick = () => {
+      if (stateSet.has(val)) stateSet.delete(val); else stateSet.add(val);
+      renderFn();
+    };
+    frag.appendChild(chip);
+  });
+  container.appendChild(frag);
+}
+
+function renderBrowseSeverityChips() {
+  renderChips(EL.browseSeverityChips, BROWSE_SEVERITY_OPTIONS, browseFilterState.severities, renderBrowseSeverityChips);
+}
+
+function renderBrowseCategoryChips() {
+  renderChips(EL.browseCategoryChips, BROWSE_CATEGORY_OPTIONS, browseFilterState.categories, renderBrowseCategoryChips);
+}
+
+function setDateToday() {
+  const today = new Date().toISOString().slice(0, 10);
+  browseFilterState.date_from = today;
+  browseFilterState.date_to   = today;
+  document.getElementById('browseDateFrom').value = today;
+  document.getElementById('browseDateTo').value   = today;
+}
+
+function buildBrowsePrefillTask() {
+  const status = browseFilterState.status.trim();
+  const severities = Array.from(browseFilterState.severities);
+  const categories = Array.from(browseFilterState.categories);
+  const dateFrom = (browseFilterState.date_from || '').trim();
+  const dateTo   = (browseFilterState.date_to   || '').trim();
+
+  if (!status && severities.length === 0 && categories.length === 0 && !dateFrom) {
+    return null;
+  }
+
+  const parts = [];
+  if (status) parts.push(`Set Status to '${status}'.`);
+  if (severities.length > 0) {
+    const quoted = severities.map(s => `'${s}'`).join(', ');
+    parts.push(`Select Severities ${quoted}.`);
+  }
+  if (categories.length > 0) {
+    const quoted = categories.map(c => `'${c}'`).join(', ');
+    parts.push(`Select Categories ${quoted}.`);
+  }
+  if (dateFrom) {
+    if (dateTo && dateTo !== dateFrom) {
+      parts.push(`Filter date from '${dateFrom}' to '${dateTo}'.`);
+    } else {
+      parts.push(`Filter date to today.`);
+    }
+  }
+
+  return `Apply browse filters first using Playwright. ${parts.join(' ')}`;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const res = await fetch('/api/defaults');
+    if (!res.ok) throw new Error(`Server returned ${res.status} ${res.statusText}`);
+    const data = await res.json();
+    if (!data || typeof data.systemPrompts !== 'object' || typeof data.scenarios !== 'object') {
+      throw new Error('Unexpected response from /api/defaults');
+    }
+    allData = data;
+    EL.targetUrl.value = allData.targetUrl || '';
+    EL.maxIters.value  = allData.maxIterations || 15;
+    renderBrowseSeverityChips();
+    renderBrowseCategoryChips();
+    switchMode('browse');
+  } catch (err) {
+    EL.panelBody.innerHTML =
+      `<div style="color:var(--red);padding:16px;font-size:13px;line-height:1.7;">
+        <strong>Failed to load configuration.</strong><br>
+        ${escHtml(err.message)}<br><br>
+        Make sure the server is running and refresh the page.
+      </div>`;
+    EL.btnRun.disabled = true;
+  }
+}
+
+// ── Mode switching ────────────────────────────────────────────────────────
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+
+  EL.browseFilterAssist.style.display = mode === 'browse' ? 'block' : 'none';
+
+  const isReadonly = mode === 'create' || mode === 'update';
+  document.querySelector('.task-actions').style.display = isReadonly ? 'none' : '';
+
+  EL.systemPrompt.value = allData.systemPrompts[mode] || allData.systemPrompts.browse;
+
+  const scenarios = allData.scenarios[mode] || {};
+  const keys = Object.keys(scenarios);
+
+  if (keys.length <= 1 && mode === 'browse') {
+    EL.scenarioPicker.style.display = 'none';
+    tasks = ((scenarios[keys[0]] || {}).tasks || []).map(t => ({...t}));
+    renderTasks();
+    return;
+  }
+
+  EL.scenarioPicker.style.display = 'block';
+  EL.scenarioSelect.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  keys.forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = scenarios[k].name;
+    frag.appendChild(opt);
+  });
+  EL.scenarioSelect.appendChild(frag);
+  onScenarioChange();
+}
+
+EL.browseStatus.addEventListener('change', () => {
+  browseFilterState.status = EL.browseStatus.value;
+});
+
+function onScenarioChange() {
+  const scenario = allData.scenarios[currentMode][EL.scenarioSelect.value];
+  if (!scenario) return;
+  EL.scenarioDesc.textContent = scenario.description || '';
+  tasks = scenario.tasks.map(t => ({...t}));
+  renderTasks();
+}
+
+// ── Tasks ─────────────────────────────────────────────────────────────────
+function renderTasks() {
+  const frag = document.createDocumentFragment();
+  const isReadonly = currentMode === 'create' || currentMode === 'update';
+  tasks.forEach((t, i) => {
+    const li = document.createElement('li');
+    li.className = 'task-item' + (t.done ? ' completed' : '');
+    li.dataset.idx = i;
+
+    const num = document.createElement('div');
+    num.className = 'task-num';
+    num.textContent = t.done ? '' : i + 1;
+
+    const textWrap = document.createElement('div');
+    textWrap.className = 'task-text';
+    const inp = document.createElement('input');
+    inp.value = t.text;
+    inp.dataset.idx = i;
+    if (isReadonly) inp.readOnly = true;
+    textWrap.appendChild(inp);
+
+    const rm = document.createElement('button');
+    rm.className = 'btn-remove';
+    rm.title = 'Remove';
+    rm.textContent = '×';
+    rm.dataset.idx = i;
+    if (isReadonly) rm.style.display = 'none';
+
+    li.append(num, textWrap, rm);
+    frag.appendChild(li);
+  });
+  EL.taskList.innerHTML = '';
+  EL.taskList.appendChild(frag);
+}
+
+// Event delegation — one listener on the list instead of inline handlers
+EL.taskList.addEventListener('change', e => {
+  if (e.target.tagName === 'INPUT') tasks[+e.target.dataset.idx].text = e.target.value;
+});
+EL.taskList.addEventListener('click', e => {
+  const btn = e.target.closest('.btn-remove');
+  if (btn) { tasks.splice(+btn.dataset.idx, 1); renderTasks(); }
+});
+
+function addTask() {
+  tasks.push({ id: tasks.length + 1, text: '', done: false });
+  renderTasks();
+  const inputs = EL.taskList.querySelectorAll('input');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+}
+
+// ── Logging ───────────────────────────────────────────────────────────────
+function log(msg, cls = '') {
+  if (EL.logBody.childElementCount >= MAX_LOG_LINES) {
+    EL.logBody.removeChild(EL.logBody.firstChild);
+  }
+  const div = document.createElement('div');
+  div.className = 'log-entry ' + cls;
+  div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  EL.logBody.appendChild(div);
+  EL.logBody.scrollTop = EL.logBody.scrollHeight;
+}
+
+// ── Status badge ──────────────────────────────────────────────────────────
+function setStatus(state, label) {
+  EL.statusBadge.className = 'header-badge badge-' + state;
+  EL.statusBadge.textContent = label || state;
+}
+
+// ── Screenshot viewer ─────────────────────────────────────────────────────
+function showScreenshot(idx) {
+  const s = screenshots[idx];
+  if (!s) return;
+
+  // Reuse persistent img — just swap src, no DOM rebuild
+  _viewerImg.src = `/screenshots/${s.image}`;
+  _viewerImg.alt = `iter ${s.iteration}`;
+  _viewerImg.style.display = '';
+  if (_viewerHolder) _viewerHolder.style.display = 'none';
+
+  EL.iterLabel.textContent  = s.iteration === 0 ? 'Initial' : `Iteration ${s.iteration}`;
+  EL.actionLabel.textContent = s.action || '';
+
+  // Update active thumb using tracked index — no querySelectorAll scan
+  const thumbs = EL.timeline.children;
+  if (activeThumbIdx >= 0 && thumbs[activeThumbIdx]) {
+    thumbs[activeThumbIdx].classList.remove('active');
+  }
+  if (thumbs[idx]) thumbs[idx].classList.add('active');
+  activeThumbIdx = idx;
+}
+
+function addScreenshotToTimeline(s) {
+  screenshots.push(s);
+  const idx = screenshots.length - 1;
+
+  const thumb = document.createElement('div');
+  thumb.className = 'timeline-thumb';
+
+  const img = document.createElement('img');
+  img.src = `/screenshots/${s.image}`;
+  img.alt = `iter ${s.iteration}`;
+  img.loading = 'lazy';
+  img.decoding = 'async';
+
+  const label = document.createElement('div');
+  label.className = 'thumb-label';
+  label.textContent = s.iteration === 0 ? 'Init' : `#${s.iteration}`;
+
+  thumb.append(img, label);
+  thumb.onclick = () => showScreenshot(idx);
+  EL.timeline.appendChild(thumb);
+  EL.timeline.scrollLeft = EL.timeline.scrollWidth;
+
+  showScreenshot(idx);
+}
+
+// ── Summary ───────────────────────────────────────────────────────────────
+function showSummary(text) {
+  EL.summaryText.textContent = text;
+  EL.summaryOverlay.classList.add('show');
+}
+function closeSummary() {
+  EL.summaryOverlay.classList.remove('show');
+}
+
+// ── WebSocket agent runner ────────────────────────────────────────────────
+function startAgent() {
+  if (ws && ws.readyState === WebSocket.OPEN) return; // guard double-start
+
+  EL.btnRun.disabled = true;
+  EL.btnRun.textContent = 'Running…';
+
+  // Reset UI
+  screenshots = [];
+  activeThumbIdx = -1;
+  EL.timeline.innerHTML = '';
+  EL.logBody.innerHTML  = '';
+  _viewerImg.src = '';
+  _viewerImg.style.display = 'none';
+  if (_viewerHolder) _viewerHolder.style.display = '';
+  EL.iterLabel.textContent   = 'Starting…';
+  EL.actionLabel.textContent = '';
+  setStatus('running', 'Running');
+
+  const config = {
+    mode:          currentMode,
+    systemPrompt:  EL.systemPrompt.value,
+    tasks:         (() => {
+      const filtered = tasks.filter(t => t.text.trim());
+      if (currentMode !== 'browse') return filtered;
+      const prefillTask = buildBrowsePrefillTask();
+      if (!prefillTask) return filtered;
+      return [{ id: 0, text: prefillTask }, ...filtered];
+    })(),
+    targetUrl:     EL.targetUrl.value,
+    maxIterations: parseInt(EL.maxIters.value) || 15,
+  };
+
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/ws/run`);
+
+  ws.onopen = () => {
+    log(`Connected — mode: ${currentMode}`);
+    ws.send(JSON.stringify(config));
+  };
+
+  ws.onmessage = (e) => {
+    let msg;
+    try { msg = JSON.parse(e.data); }
+    catch { console.error('Malformed server message:', e.data); return; }
+
+    switch (msg.type) {
+      case 'log':
+        log(msg.message);
+        break;
+      case 'status':
+        setStatus('running', msg.state);
+        log(`Status: ${msg.state}`);
+        break;
+      case 'screenshot':
+        addScreenshotToTimeline({ image: msg.image, iteration: msg.iteration, action: msg.action });
+        log(`Iter ${msg.iteration}: ${msg.action}`, 'action');
+        break;
+      case 'reasoning':
+        log(`Reasoning: ${msg.text}`, 'reasoning');
+        break;
+      case 'done':
+        setStatus('done', 'Complete');
+        log(`Agent finished (iter ${msg.iteration})`, 'done');
+        if (msg.summary) { log(msg.summary, 'done'); showSummary(msg.summary); }
+        resetBtn();
+        break;
+      case 'error':
+        setStatus('error', 'Error');
+        log(`Error: ${msg.message}`, 'error');
+        resetBtn();
+        break;
+    }
+  };
+
+  ws.onerror = () => {
+    log('WebSocket error', 'error');
+    setStatus('error', 'Error');
+    resetBtn();
+  };
+
+  ws.onclose = (e) => {
+    if (e.code !== 1000 && e.code !== 1005) {
+      log(`Connection closed unexpectedly (code ${e.code})`, 'error');
+    } else {
+      log('Connection closed');
+    }
+    if (EL.btnRun.disabled) resetBtn();
+  };
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

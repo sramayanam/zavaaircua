@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zava Air – Customer Complaints</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #242836;
+      --border: #2e3346;
+      --text: #e1e4ed;
+      --text-muted: #8b90a0;
+      --accent: #6c8cff;
+      --accent-hover: #8aa4ff;
+      --low: #22c55e;
+      --medium: #eab308;
+      --high: #f97316;
+      --critical: #ef4444;
+      --open: #3b82f6;
+      --review: #a855f7;
+      --resolved: #22c55e;
+      --closed: #6b7280;
+      --escalated: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+    .header h1 { font-size: 20px; font-weight: 600; }
+    .header h1 span { color: var(--accent); }
+    .header-actions { display: flex; gap: 12px; align-items: center; }
+
+    /* ── Filters ────────────────────────────────────────────────────────── */
+    .filters { padding: 16px 32px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .filters label { font-size: 13px; color: var(--text-muted); }
+    select, input[type="text"], input[type="date"] {
+      background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+      padding: 6px 12px; border-radius: 6px; font-size: 13px; outline: none;
+      color-scheme: dark;
+    }
+    select:focus, input:focus { border-color: var(--accent); }
+
+    /* ── Buttons ────────────────────────────────────────────────────────── */
+    .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--accent); }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+    /* ── Stats ──────────────────────────────────────────────────────────── */
+    .stats { padding: 0 32px 12px; display: flex; gap: 16px; flex-wrap: wrap; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 20px; min-width: 130px; }
+    .stat-card .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card .value { font-size: 24px; font-weight: 700; margin-top: 2px; }
+
+    /* ── Table ──────────────────────────────────────────────────────────── */
+    .table-wrap { padding: 0 32px 32px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 8px; overflow: hidden; }
+    thead th { background: var(--surface2); padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; border-bottom: 1px solid var(--border); }
+    tbody td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tbody tr { cursor: pointer; transition: background 0.1s; }
+    tbody tr:hover { background: var(--surface2); }
+
+    /* ── Badges ─────────────────────────────────────────────────────────── */
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+    .badge-low { background: rgba(34,197,94,0.15); color: var(--low); }
+    .badge-medium { background: rgba(234,179,8,0.15); color: var(--medium); }
+    .badge-high { background: rgba(249,115,22,0.15); color: var(--high); }
+    .badge-critical { background: rgba(239,68,68,0.15); color: var(--critical); }
+    .badge-open { background: rgba(59,130,246,0.15); color: var(--open); }
+    .badge-under-review { background: rgba(168,85,247,0.15); color: var(--review); }
+    .badge-resolved { background: rgba(34,197,94,0.15); color: var(--resolved); }
+    .badge-closed { background: rgba(107,114,128,0.15); color: var(--closed); }
+    .badge-escalated { background: rgba(239,68,68,0.15); color: var(--escalated); }
+
+    /* ── Modal ──────────────────────────────────────────────────────────── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; width: 90%; max-width: 640px; max-height: 90vh; overflow-y: auto; padding: 24px; }
+    .modal h2 { font-size: 18px; margin-bottom: 16px; }
+    .modal .form-group { margin-bottom: 14px; }
+    .modal .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .modal select, .modal input, .modal textarea {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+      padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; font-family: inherit;
+    }
+    .modal textarea { min-height: 80px; resize: vertical; }
+    .modal .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+    /* ── Detail panel ──────────────────────────────────────────────────── */
+    .detail-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin: 0 32px 24px; padding: 24px; display: none; }
+    .detail-panel.active { display: block; }
+    .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .detail-field .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .detail-field .value { font-size: 14px; margin-top: 2px; }
+    .detail-description { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .detail-description p { margin-top: 6px; color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+
+    /* ── Toast ──────────────────────────────────────────────────────────── */
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--accent); color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 2000; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .toast.show { opacity: 1; }
+
+    /* ── Empty state ───────────────────────────────────────────────────── */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
+
+    /* ── Loading ────────────────────────────────────────────────────────── */
+    .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+    .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>✈️ <span>Zava Air</span> — Customer Complaints</h1>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="openNewComplaintModal()">+ New Complaint</button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <label>Status</label>
+    <select id="filterStatus" title="Filter complaints by status" onchange="loadComplaints()">
+      <option value="">All</option>
+      <option value="Open">Open</option>
+      <option value="Under Review">Under Review</option>
+      <option value="Resolved">Resolved</option>
+      <option value="Closed">Closed</option>
+      <option value="Escalated">Escalated</option>
+    </select>
+    <label>Severity</label>
+    <select id="filterSeverity" title="Filter complaints by severity" onchange="loadComplaints()">
+      <option value="">All</option>
+      <option value="Low">Low</option>
+      <option value="Medium">Medium</option>
+      <option value="High">High</option>
+      <option value="Critical">Critical</option>
+    </select>
+    <label>Category</label>
+    <select id="filterCategory" title="Filter complaints by category" onchange="loadComplaints()">
+      <option value="">All</option>
+    </select>
+    <span style="border-left:1px solid var(--border);height:24px;margin:0 4px;align-self:center"></span>
+    <label>Date</label>
+    <input type="date" id="filterDateFrom" title="Complaints from this date" onchange="loadComplaints()">
+    <span style="color:var(--text-muted);font-size:12px;align-self:center">–</span>
+    <input type="date" id="filterDateTo" title="Complaints to this date" onchange="loadComplaints()">
+    <button class="btn btn-secondary btn-sm" onclick="filterToday()">Today</button>
+    <button class="btn btn-secondary btn-sm" onclick="clearDateFilter()">Clear Dates</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats" id="statsBar"></div>
+
+  <!-- Detail panel (shown on row click) -->
+  <div class="detail-panel" id="detailPanel"></div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Passenger</th>
+          <th>Flight</th>
+          <th>PNR</th>
+          <th>Route</th>
+          <th>Category</th>
+          <th>Severity</th>
+          <th>Status</th>
+          <th>Agent</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="complaintsBody">
+        <tr><td colspan="10" class="loading"><div class="spinner"></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- New Complaint Modal -->
+  <div class="modal-overlay" id="newComplaintModal">
+    <div class="modal">
+      <h2>New Complaint</h2>
+      <form id="complaintForm" onsubmit="submitComplaint(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Passenger Name</label>
+            <input id="fPassengerName" type="text" required placeholder="Enter passenger full name">
+          </div>
+          <div class="form-group">
+            <label>Flight</label>
+            <select id="fFlight" required></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Passenger Email</label>
+            <input id="fPassengerEmail" type="text" placeholder="name@example.com">
+          </div>
+          <div class="form-group">
+            <label>Passenger Phone</label>
+            <input id="fPassengerPhone" type="text" placeholder="+1-555-0100">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>PNR / Ticket Number</label>
+          <input id="fPnr" type="text" required placeholder="e.g. PNR12345">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category</label>
+            <select id="fCategory" required onchange="updateSubcategories()"></select>
+          </div>
+          <div class="form-group">
+            <label>Subcategory</label>
+            <select id="fSubcategory" required></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Severity</label>
+            <select id="fSeverity" required>
+              <option value="Low">Low</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Assign Agent</label>
+            <select id="fAgent"></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="fDescription" required placeholder="Describe the complaint in detail..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Complaint</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Update Status Modal -->
+  <div class="modal-overlay" id="updateModal">
+    <div class="modal">
+      <h2>Update Complaint <span id="updateTitle"></span></h2>
+      <form id="updateForm" onsubmit="submitUpdate(event)">
+        <input type="hidden" id="uComplaintId">
+        <input type="hidden" id="uFlightId">
+        <input type="hidden" id="uFlightNumber">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Passenger Name</label>
+            <input id="uPassengerName" type="text" readonly>
+          </div>
+          <div class="form-group">
+            <label>PNR / Ticket Number</label>
+            <input id="uPnr" type="text" readonly>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Passenger Email</label>
+            <input id="uPassengerEmail" type="text" readonly>
+          </div>
+          <div class="form-group">
+            <label>Passenger Phone</label>
+            <input id="uPassengerPhone" type="text" readonly>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Status</label>
+            <select id="uStatus">
+              <option value="Open">Open</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Closed">Closed</option>
+              <option value="Escalated">Escalated</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Severity</label>
+            <select id="uSeverity">
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Assigned Agent</label>
+            <select id="uAgent"></select>
+          </div>
+          <div class="form-group">
+            <label>Satisfaction Score (1–5)</label>
+            <select id="uScore">
+              <option value="">N/A</option>
+              <option value="1.0">1.0</option>
+              <option value="1.5">1.5</option>
+              <option value="2.0">2.0</option>
+              <option value="2.5">2.5</option>
+              <option value="3.0">3.0</option>
+              <option value="3.5">3.5</option>
+              <option value="4.0">4.0</option>
+              <option value="4.5">4.5</option>
+              <option value="5.0">5.0</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Resolution Notes</label>
+          <textarea id="uNotes" placeholder="Add resolution details..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+<script>
+  const API = '';
+
+  // ── State ────────────────────────────────────────────────────────────────
+  let flights = [];
+  let categories = {};
+  let agents = [];
+  let complaints = [];
+
+  // ── Init ─────────────────────────────────────────────────────────────────
+  async function init() {
+    try {
+      const [fRes, cRes, aRes] = await Promise.all([
+        fetch(`${API}/api/flights`),
+        fetch(`${API}/api/categories`),
+        fetch(`${API}/api/agents`),
+      ]);
+      flights = await fRes.json();
+      categories = await cRes.json();
+      agents = await aRes.json();
+
+      populateDropdowns();
+      await loadComplaints();
+    } catch (err) {
+      console.error('Init error:', err);
+      document.getElementById('complaintsBody').innerHTML =
+        '<tr><td colspan="10" class="empty-state">⚠️ Could not connect to backend. Is the server running?</td></tr>';
+    }
+  }
+
+  function populateDropdowns() {
+    // Category filter
+    const catFilter = document.getElementById('filterCategory');
+    Object.keys(categories).forEach(cat => {
+      catFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
+    });
+
+    // Flight dropdown
+    const fSel = document.getElementById('fFlight');
+    fSel.innerHTML = '<option value="">Select flight...</option>';
+    flights.forEach(f => {
+      fSel.innerHTML += `<option value="${f.flight_id}" data-fn="${f.flight_number}">${f.flight_number} – ${f.route} (${f.flight_status})</option>`;
+    });
+
+    // Category dropdown (form)
+    const cSel = document.getElementById('fCategory');
+    cSel.innerHTML = '<option value="">Select category...</option>';
+    Object.keys(categories).forEach(cat => {
+      cSel.innerHTML += `<option value="${cat}">${cat}</option>`;
+    });
+
+    // Agent dropdowns
+    const agentHtml = '<option value="">Auto-assign</option>' + agents.map(a => `<option value="${a}">${a}</option>`).join('');
+    document.getElementById('fAgent').innerHTML = agentHtml;
+    document.getElementById('uAgent').innerHTML = agentHtml;
+  }
+
+  function updateSubcategories() {
+    const cat = document.getElementById('fCategory').value;
+    const sSel = document.getElementById('fSubcategory');
+    sSel.innerHTML = '<option value="">Select subcategory...</option>';
+    if (cat && categories[cat]) {
+      categories[cat].forEach(sub => {
+        sSel.innerHTML += `<option value="${sub}">${sub}</option>`;
+      });
+    }
+  }
+
+  // ── Load complaints ─────────────────────────────────────────────────────
+  async function loadComplaints() {
+    const status = document.getElementById('filterStatus').value;
+    const severity = document.getElementById('filterSeverity').value;
+    const category = document.getElementById('filterCategory').value;
+    const dateFrom = document.getElementById('filterDateFrom').value;
+    const dateTo = document.getElementById('filterDateTo').value;
+
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    if (severity) params.set('severity', severity);
+    if (category) params.set('category', category);
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+
+    try {
+      const res = await fetch(`${API}/api/complaints?${params}`);
+      complaints = await res.json();
+      renderTable();
+      renderStats();
+    } catch (err) {
+      console.error('Load complaints error:', err);
+    }
+  }
+
+  function filterToday() {
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('filterDateFrom').value = today;
+    document.getElementById('filterDateTo').value = today;
+    loadComplaints();
+  }
+
+  function clearDateFilter() {
+    document.getElementById('filterDateFrom').value = '';
+    document.getElementById('filterDateTo').value = '';
+    loadComplaints();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('complaintsBody');
+    if (complaints.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No complaints found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = complaints.map(c => `
+      <tr onclick="showDetail(${c.complaint_id})">
+        <td><strong>#${c.complaint_id}</strong></td>
+        <td>${esc(c.passenger_name)}</td>
+        <td>${esc(c.flight_number)}</td>
+        <td>${esc(c.pnr)}</td>
+        <td>${esc(c.route)}</td>
+        <td>${esc(c.category)}<br><small style="color:var(--text-muted)">${esc(c.subcategory)}</small></td>
+        <td>${severityBadge(c.severity)}</td>
+        <td>${statusBadge(c.status)}</td>
+        <td>${esc(c.assigned_agent || '—')}</td>
+        <td style="white-space:nowrap">${fmtDate(c.complaint_date)}</td>
+      </tr>
+    `).join('');
+  }
+
+  function renderStats() {
+    const open = complaints.filter(c => c.status === 'Open').length;
+    const review = complaints.filter(c => c.status === 'Under Review').length;
+    const escalated = complaints.filter(c => c.status === 'Escalated').length;
+    const resolved = complaints.filter(c => c.status === 'Resolved' || c.status === 'Closed').length;
+    const critical = complaints.filter(c => c.severity === 'Critical').length;
+
+    document.getElementById('statsBar').innerHTML = `
+      <div class="stat-card"><div class="label">Total</div><div class="value">${complaints.length}</div></div>
+      <div class="stat-card"><div class="label">Open</div><div class="value" style="color:var(--open)">${open}</div></div>
+      <div class="stat-card"><div class="label">Under Review</div><div class="value" style="color:var(--review)">${review}</div></div>
+      <div class="stat-card"><div class="label">Escalated</div><div class="value" style="color:var(--escalated)">${escalated}</div></div>
+      <div class="stat-card"><div class="label">Resolved</div><div class="value" style="color:var(--resolved)">${resolved}</div></div>
+      <div class="stat-card"><div class="label">Critical</div><div class="value" style="color:var(--critical)">${critical}</div></div>
+    `;
+  }
+
+  // ── Detail panel ────────────────────────────────────────────────────────
+  async function showDetail(id) {
+    try {
+      const res = await fetch(`${API}/api/complaints/${id}`);
+      const c = await res.json();
+      const panel = document.getElementById('detailPanel');
+      panel.className = 'detail-panel active';
+      panel.innerHTML = `
+        <div class="detail-header">
+          <div>
+            <h3>Complaint #${c.complaint_id} — ${esc(c.subcategory)}</h3>
+            <div style="margin-top:4px">${severityBadge(c.severity)} ${statusBadge(c.status)}</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="openUpdateModal(${c.complaint_id})">Edit</button>
+            <button class="btn btn-secondary btn-sm" onclick="closeDetail()">✕</button>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-field"><div class="label">Passenger</div><div class="value">${esc(c.passenger_name)}</div></div>
+          <div class="detail-field"><div class="label">Email</div><div class="value">${esc(c.passenger_email || '—')}</div></div>
+          <div class="detail-field"><div class="label">Phone</div><div class="value">${esc(c.passenger_phone || '—')}</div></div>
+          <div class="detail-field"><div class="label">Flyer Tier</div><div class="value">${esc(c.frequent_flyer_tier)}</div></div>
+          <div class="detail-field"><div class="label">Flight</div><div class="value">${esc(c.flight_number)} (${esc(c.origin_code)} → ${esc(c.destination_code)})</div></div>
+          <div class="detail-field"><div class="label">PNR</div><div class="value">${esc(c.pnr)}</div></div>
+          <div class="detail-field"><div class="label">Case Status</div><div class="value">${esc(c.case_status || c.status)}</div></div>
+          <div class="detail-field"><div class="label">Route</div><div class="value">${esc(c.origin_city)} → ${esc(c.destination_city)}</div></div>
+          <div class="detail-field"><div class="label">Aircraft</div><div class="value">${esc(c.aircraft_type)}</div></div>
+          <div class="detail-field"><div class="label">Flight Status</div><div class="value">${esc(c.flight_status)} ${c.delay_minutes > 0 ? '(+' + c.delay_minutes + ' min)' : ''}</div></div>
+          <div class="detail-field"><div class="label">Category</div><div class="value">${esc(c.category)}</div></div>
+          <div class="detail-field"><div class="label">Assigned Agent</div><div class="value">${esc(c.assigned_agent || '—')}</div></div>
+          <div class="detail-field"><div class="label">Filed On</div><div class="value">${fmtDate(c.complaint_date)}</div></div>
+          <div class="detail-field"><div class="label">Resolved On</div><div class="value">${c.resolution_date ? fmtDate(c.resolution_date) : '—'}</div></div>
+          ${c.satisfaction_score ? `<div class="detail-field"><div class="label">Satisfaction</div><div class="value">${'★'.repeat(Math.round(c.satisfaction_score))}${'☆'.repeat(5 - Math.round(c.satisfaction_score))} (${c.satisfaction_score})</div></div>` : ''}
+        </div>
+        <div class="detail-description">
+          <div class="label">Description</div>
+          <p>${esc(c.description)}</p>
+        </div>
+        ${c.resolution_notes ? `
+        <div class="detail-description">
+          <div class="label">Resolution Notes</div>
+          <p>${esc(c.resolution_notes)}</p>
+        </div>` : ''}
+      `;
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (err) {
+      console.error('Detail error:', err);
+    }
+  }
+
+  function closeDetail() {
+    document.getElementById('detailPanel').className = 'detail-panel';
+  }
+
+  // ── New complaint modal ─────────────────────────────────────────────────
+  function openNewComplaintModal() {
+    document.getElementById('complaintForm').reset();
+    document.getElementById('fSubcategory').innerHTML = '<option value="">Select subcategory...</option>';
+    document.getElementById('newComplaintModal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('newComplaintModal').classList.remove('active');
+  }
+
+  async function submitComplaint(e) {
+    e.preventDefault();
+    const flightSel = document.getElementById('fFlight');
+    const passengerEmail = document.getElementById('fPassengerEmail').value.trim();
+    const passengerPhone = document.getElementById('fPassengerPhone').value.trim();
+
+    if (!passengerEmail && !passengerPhone) {
+      toast('Provide passenger email or phone');
+      return;
+    }
+
+    const body = {
+      passenger_name: document.getElementById('fPassengerName').value.trim(),
+      passenger_email: passengerEmail || null,
+      passenger_phone: passengerPhone || null,
+      flight_id: parseInt(flightSel.value),
+      pnr: document.getElementById('fPnr').value.trim(),
+      category: document.getElementById('fCategory').value,
+      subcategory: document.getElementById('fSubcategory').value,
+      description: document.getElementById('fDescription').value,
+      severity: document.getElementById('fSeverity').value,
+      assigned_agent: document.getElementById('fAgent').value || null,
+    };
+
+    try {
+      const res = await fetch(`${API}/api/complaints`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const errorBody = await res.json();
+        throw new Error(errorBody.error || 'Submit failed');
+      }
+      closeModal();
+      toast('Complaint submitted successfully');
+      await loadComplaints();
+    } catch (err) {
+      console.error('Submit error:', err);
+      toast(err.message || 'Failed to submit complaint');
+    }
+  }
+
+  // ── Update modal ────────────────────────────────────────────────────────
+  async function openUpdateModal(id) {
+    const res = await fetch(`${API}/api/complaints/${id}`);
+    const c = await res.json();
+    document.getElementById('uComplaintId').value = c.complaint_id;
+    document.getElementById('uFlightId').value = c.flight_id;
+    document.getElementById('uFlightNumber').value = c.flight_number;
+    document.getElementById('updateTitle').textContent = `#${c.complaint_id}`;
+    document.getElementById('uPassengerName').value = c.passenger_name;
+    document.getElementById('uPassengerEmail').value = c.passenger_email || '';
+    document.getElementById('uPassengerPhone').value = c.passenger_phone || '';
+    document.getElementById('uPnr').value = c.pnr;
+    document.getElementById('uStatus').value = c.status;
+    document.getElementById('uSeverity').value = c.severity;
+    document.getElementById('uAgent').value = c.assigned_agent || '';
+    document.getElementById('uNotes').value = c.resolution_notes || '';
+    document.getElementById('uScore').value = c.satisfaction_score ? String(c.satisfaction_score) : '';
+    document.getElementById('updateModal').classList.add('active');
+  }
+
+  function closeUpdateModal() {
+    document.getElementById('updateModal').classList.remove('active');
+  }
+
+  async function submitUpdate(e) {
+    e.preventDefault();
+    const id = document.getElementById('uComplaintId').value;
+
+    const body = {
+      passenger_name: document.getElementById('uPassengerName').value,
+      passenger_email: document.getElementById('uPassengerEmail').value || null,
+      passenger_phone: document.getElementById('uPassengerPhone').value || null,
+      flight_id: parseInt(document.getElementById('uFlightId').value),
+      flight_number: document.getElementById('uFlightNumber').value,
+      pnr: document.getElementById('uPnr').value,
+      status: document.getElementById('uStatus').value,
+      severity: document.getElementById('uSeverity').value,
+      assigned_agent: document.getElementById('uAgent').value || null,
+      resolution_notes: document.getElementById('uNotes').value || null,
+      satisfaction_score: document.getElementById('uScore').value ? parseFloat(document.getElementById('uScore').value) : null,
+    };
+
+    try {
+      const res = await fetch(`${API}/api/complaints/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const errorBody = await res.json();
+        throw new Error(errorBody.error || 'Update failed');
+      }
+      closeUpdateModal();
+      toast('Complaint updated');
+      await loadComplaints();
+      showDetail(parseInt(id));
+    } catch (err) {
+      console.error('Update error:', err);
+      toast(err.message || 'Failed to update complaint');
+    }
+  }
+
+  // ── Helpers ─────────────────────────────────────────────────────────────
+  function esc(s) {
+    if (!s) return '';
+    const el = document.createElement('span');
+    el.textContent = s;
+    return el.innerHTML;
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function severityBadge(sev) {
+    const cls = sev ? sev.toLowerCase() : 'low';
+    return `<span class="badge badge-${cls}">${esc(sev)}</span>`;
+  }
+
+  function statusBadge(st) {
+    if (!st) return '';
+    const cls = st.toLowerCase().replace(/ /g, '-');
+    return `<span class="badge badge-${cls}">${esc(st)}</span>`;
+  }
+
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2500);
+  }
+
+  // ── Boot ─────────────────────────────────────────────────────────────────
+  init();
+</script>
+</body>
+</html>

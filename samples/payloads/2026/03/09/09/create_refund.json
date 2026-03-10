@@ -1,0 +1,16 @@
+{
+  "mode": "create",
+  "id": "SIM-C-REF-003",
+  "name": "Sim: Booking & Refunds - Refund not received 45 days after cancellation",
+  "scenario_description": "Passenger cancelled a fully refundable ticket 45 days ago. Portal shows Refund Processed but no credit has appeared on the original payment method.",
+  "passenger_name": "Oliver Leclerc",
+  "passenger_email": "oliver.leclerc@example.com",
+  "passenger_phone": "+1-555-0112",
+  "flight_number": "ZA303",
+  "pnr": "PNR-SIM-003",
+  "category": "Booking & Refunds",
+  "subcategory": "Refund Delay",
+  "severity": "Medium",
+  "agent": "Neil Armstrong II",
+  "complaint_description": "I cancelled booking PNR-SIM-003 on January 24 2026 for flight ZA303, which was purchased as a fully refundable Business Select fare. The Lunar Air portal has shown Refund Processed since January 26 but as of today March 9 the $1,247 refund has not posted to my Visa card. I have called customer service three times and each agent says processing takes 7-10 business days. It has been 45 days. Please escalate to the finance team and provide written confirmation of the refund status."
+}

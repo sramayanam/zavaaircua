@@ -1,0 +1,28 @@
+{
+  "name": "lunarair-complaints",
+  "version": "1.0.0",
+  "description": "Lunar Air customer complaints web frontend with PostgreSQL backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "lint": "eslint server.js db.js public/index.html cua/static/index.html"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.13.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "openai": "^6.27.0",
+    "pg": "^8.13.1",
+    "playwright": "^1.58.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.4.0",
+    "eslint": "^10.0.3",
+    "eslint-plugin-html": "^8.1.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

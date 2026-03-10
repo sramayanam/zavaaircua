@@ -1,0 +1,14 @@
+{
+  "mode": "update",
+  "id": "SIM-U-SAF-002",
+  "name": "Sim: Update safety complaint - investigation complete, report issued",
+  "description": "Updating Emma Brown's escalated safety complaint on ZA707: crew behaviour safety concern investigated and resolved.",
+  "target_passenger_name": "Emma Brown",
+  "target_flight_number": "ZA707",
+  "target_pnr": "PNR5005",
+  "new_status": "Resolved",
+  "new_severity": "Medium",
+  "new_agent": "Luna Vasquez",
+  "new_score": "3.5",
+  "new_notes": "Safety concern reviewed by cabin crew standards team. Crew member debriefed and additional training scheduled. Formal written response sent to passenger on March 10 2026 with investigation findings. Passenger compensation: 15000 Lunar Air miles and a $150 travel voucher issued. Case closed following passenger acknowledgement."
+}

@@ -1,0 +1,25 @@
+{
+  "records": {
+    "custcomplaints": [
+      {
+        "operation": "insert",
+        "complaint_id": 55,
+        "passenger_id": 1,
+        "flight_id": 24,
+        "flight_number": "LA124",
+        "complaint_date": "2026-02-22T20:00:00Z",
+        "category": "Baggage",
+        "subcategory": "Lost Baggage",
+        "description": "Both checked bags did not arrive at LAX after flight LA124 from Tokyo. Baggage reference LR000055 filed at airport.",
+        "severity": "High",
+        "status": "Open",
+        "assigned_agent": "Luna Vasquez",
+        "resolution_notes": null,
+        "resolution_date": null,
+        "satisfaction_score": null
+      }
+    ],
+    "passengers": [],
+    "flights": []
+  }
+}

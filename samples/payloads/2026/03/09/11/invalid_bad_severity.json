@@ -1,0 +1,16 @@
+{
+  "_note": "INVALID PAYLOAD — severity value 'Extreme' is not in the allowed enum [Low, Medium, High, Critical]. Logic App validation MUST reject this with VALIDATION_FAILED and write a 'rejected' audit record.",
+  "mode": "create",
+  "id": "SIM-INVALID-002",
+  "name": "Sim: INVALID create - severity enum out of range",
+  "passenger_name": "Natasha Brennan",
+  "passenger_email": "n.brennan@example.com",
+  "passenger_phone": "+1-503-555-0822",
+  "flight_number": "ZA909",
+  "pnr": "PNR-SIM-102",
+  "category": "Flight Operations",
+  "subcategory": "Overbooking",
+  "severity": "Extreme",
+  "agent": "Atlas Rivera",
+  "complaint_description": "I was involuntarily denied boarding despite having a confirmed seat, a valid boarding pass, and being at the gate 50 minutes before departure. The gate agent said the flight was overbooked by 3 seats."
+}

@@ -1,0 +1,177 @@
+{
+  "records": {
+    "custcomplaints": [],
+    "passengers": [
+      {
+        "operation": "upsert",
+        "passenger_id": 1,
+        "first_name": "Amara",
+        "last_name": "Adeyemi",
+        "email": "amara.adeyemi@example.com",
+        "phone": "+1-854-214-1409",
+        "country": "Mexico",
+        "frequent_flyer_tier": "None",
+        "total_flights": 115,
+        "member_since": "2017-12-04T00:00:00"
+      },
+      {
+        "operation": "upsert",
+        "passenger_id": 2,
+        "first_name": "Bjorn",
+        "last_name": "Bergman",
+        "email": "bjorn.bergman@example.com",
+        "phone": "+1-892-858-9935",
+        "country": "United Kingdom",
+        "frequent_flyer_tier": "Bronze",
+        "total_flights": 17,
+        "member_since": "2015-02-07T00:00:00"
+      },
+      {
+        "operation": "upsert",
+        "passenger_id": 3,
+        "first_name": "Chloe",
+        "last_name": "Chen",
+        "email": "chloe.chen@example.com",
+        "phone": "+1-438-617-1434",
+        "country": "India",
+        "frequent_flyer_tier": "Silver",
+        "total_flights": 295,
+        "member_since": "2021-04-15T00:00:00"
+      },
+      {
+        "operation": "upsert",
+        "passenger_id": 4,
+        "first_name": "Diego",
+        "last_name": "Delacroix",
+        "email": "diego.delacroix@example.com",
+        "phone": "+1-803-384-1106",
+        "country": "Canada",
+        "frequent_flyer_tier": "Silver",
+        "total_flights": 175,
+        "member_since": "2019-03-07T00:00:00"
+      },
+      {
+        "operation": "upsert",
+        "passenger_id": 5,
+        "first_name": "Elif",
+        "last_name": "Eriksson",
+        "email": "elif.eriksson@example.com",
+        "phone": "+1-981-444-2674",
+        "country": "United Kingdom",
+        "frequent_flyer_tier": "None",
+        "total_flights": 184,
+        "member_since": "2020-10-09T00:00:00"
+      },
+      {
+        "operation": "upsert",
+        "passenger_id": 7,
+        "first_name": "Gabriel",
+        "last_name": "Gupta",
+        "email": "gabriel.gupta@example.com",
+        "phone": "+1-843-733-6925",
+        "country": "South Korea",
+        "frequent_flyer_tier": "None",
+        "total_flights": 36,
+        "member_since": "2015-11-08T00:00:00"
+      },
+      {
+        "operation": "upsert",
+        "passenger_id": 9,
+        "first_name": "Ivan",
+        "last_name": "Iwata",
+        "email": "ivan.iwata@example.com",
+        "phone": "+1-573-266-7065",
+        "country": "Germany",
+        "frequent_flyer_tier": "None",
+        "total_flights": 137,
+        "member_since": "2016-10-21T00:00:00"
+      },
+      {
+        "operation": "upsert",
+        "passenger_id": 12,
+        "first_name": "Layla",
+        "last_name": "Leclerc",
+        "email": "layla.leclerc@example.com",
+        "phone": "+1-416-680-6155",
+        "country": "Australia",
+        "frequent_flyer_tier": "Silver",
+        "total_flights": 203,
+        "member_since": "2022-03-09T00:00:00"
+      },
+      {
+        "operation": "upsert",
+        "passenger_id": 15,
+        "first_name": "Oliver",
+        "last_name": "Okafor",
+        "email": "oliver.okafor@example.com",
+        "phone": "+1-896-532-2040",
+        "country": "France",
+        "frequent_flyer_tier": "None",
+        "total_flights": 240,
+        "member_since": "2023-05-18T00:00:00"
+      },
+      {
+        "operation": "upsert",
+        "passenger_id": 20,
+        "first_name": "Tariq",
+        "last_name": "Tanaka",
+        "email": "tariq.tanaka@example.com",
+        "phone": "+1-514-345-1949",
+        "country": "Australia",
+        "frequent_flyer_tier": "Bronze",
+        "total_flights": 49,
+        "member_since": "2016-12-16T00:00:00"
+      }
+    ],
+    "flights": [
+      {
+        "operation": "upsert",
+        "flight_id": 2,
+        "flight_number": "LA102",
+        "origin_code": "LAX",
+        "origin_city": "Los Angeles",
+        "destination_code": "ORD",
+        "destination_city": "Chicago",
+        "scheduled_departure": "2025-12-13T13:22:00Z",
+        "actual_departure": "2025-12-13T14:07:00Z",
+        "scheduled_arrival": "2025-12-13T22:22:00Z",
+        "actual_arrival": "2025-12-13T23:07:00Z",
+        "aircraft_type": "Lunar Cruiser 737",
+        "flight_status": "Delayed",
+        "delay_minutes": 45
+      },
+      {
+        "operation": "insert",
+        "flight_id": 24,
+        "flight_number": "LA124",
+        "origin_code": "NRT",
+        "origin_city": "Tokyo",
+        "destination_code": "LAX",
+        "destination_city": "Los Angeles",
+        "scheduled_departure": "2026-02-22T00:30:00Z",
+        "actual_departure": "2026-02-22T00:30:00Z",
+        "scheduled_arrival": "2026-02-22T10:30:00Z",
+        "actual_arrival": "2026-02-22T10:30:00Z",
+        "aircraft_type": "Moonbeam A350",
+        "flight_status": "On Time",
+        "delay_minutes": 0
+      },
+      {
+        "operation": "insert",
+        "flight_id": 25,
+        "flight_number": "LA125",
+        "origin_code": "LAX",
+        "origin_city": "Los Angeles",
+        "destination_code": "LHR",
+        "destination_city": "London",
+        "scheduled_departure": "2026-02-23T10:00:00Z",
+        "actual_departure": "2026-02-23T11:30:00Z",
+        "scheduled_arrival": "2026-02-23T20:00:00Z",
+        "actual_arrival": "2026-02-23T21:30:00Z",
+        "aircraft_type": "Tycho 777X",
+        "flight_status": "Delayed",
+        "delay_minutes": 90
+      }
+    ]
+  }
+}

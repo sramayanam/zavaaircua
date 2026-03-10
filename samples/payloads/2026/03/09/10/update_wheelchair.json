@@ -1,0 +1,14 @@
+{
+  "mode": "update",
+  "id": "SIM-U-WCH-003",
+  "name": "Sim: Update wheelchair complaint - escalated, accessibility manager assigned",
+  "description": "Updating Elif Okafor's escalated special assistance complaint on ZA707: escalating with DOT notification and assigning accessibility lead.",
+  "target_passenger_name": "Elif Okafor",
+  "target_flight_number": "ZA707",
+  "target_pnr": "PNR1015",
+  "new_status": "Escalated",
+  "new_severity": "High",
+  "new_agent": "Cassidy Moon",
+  "new_score": "2.0",
+  "new_notes": "Case reviewed by Accessibility Services Manager. Wheelchair request was confirmed in booking but not transmitted to destination ground handler due to a data handoff error. Immediate corrective action: manual verification call protocol added for all WCHR requests until feed is restored. Complaint escalated to DOT disability office per ACAA Section 382.151 with airline response deadline March 19 2026. Personal written apology from VP Customer Experience sent to passenger. $400 travel credit issued and accessibility lead assigned for direct follow-up."
+}

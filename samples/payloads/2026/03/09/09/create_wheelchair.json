@@ -1,0 +1,16 @@
+{
+  "mode": "create",
+  "id": "SIM-C-WCH-006",
+  "name": "Sim: Special Assistance - Wheelchair not arranged at destination on ZA221",
+  "scenario_description": "Passenger requiring a wheelchair requested assistance 72 hours before departure. Wheelchair was not available upon arrival leaving the passenger stranded at the jet bridge.",
+  "passenger_name": "Sam Reeves",
+  "passenger_email": "sam.reeves@example.com",
+  "passenger_phone": "+1-555-0201",
+  "flight_number": "ZA221",
+  "pnr": "PNR-SIM-006",
+  "category": "Special Assistance",
+  "subcategory": "Wheelchair Service Failure",
+  "severity": "High",
+  "agent": "Cassidy Moon",
+  "complaint_description": "I have a permanent mobility impairment and require wheelchair assistance at all airports. I requested both departure and arrival wheelchair service for PNR-SIM-006 and confirmed 72 hours before the March 9 2026 flight ZA221 from Los Angeles to Denver. A wheelchair was available at departure but upon landing in Denver no wheelchair or escort was waiting at the jet bridge. I waited over 30 minutes until a ground staff member noticed me. This is a serious failure in disability accommodation. I am requesting a formal apology confirmation of corrective action and compensation for the distress caused."
+}

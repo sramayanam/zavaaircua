@@ -1,0 +1,87 @@
+flowchart TD
+    A(["`**Blob Upload**
+    samples/payloads/.../create_*.json`"]) -->|BlobCreated event| B
+
+    subgraph EG["Azure Event Grid"]
+        B["System Topic
+        aaaorgcuastore-0a19e…"]
+    end
+
+    B -->|HTTP POST| C
+
+    subgraph LA["Logic App — la-cua-rpa-gsuqive4sc3tm"]
+        C["HTTP Trigger
+        (Event Grid endpoint)"]
+        C --> D{"Check_If_Validation
+        Is this a handshake probe?"}
+        D -->|Yes — return validationResponse| Z1([End])
+        D -->|No — real event| E
+
+        E["Get_Blob_Content
+        HTTP GET · MSI auth
+        x-ms-version: 2020-10-02
+        audience: storage.azure.com"]
+
+        E --> F["Parse_Blob_JSON
+        varMode · varPayload"]
+
+        F --> G{"Validate_Payload
+        required fields
+        enum values"}
+
+        G -->|Invalid| H["Write_Audit_Rejected
+        PartitionKey = rejected
+        status = VALIDATION_FAILED"]
+        H --> Z2([End])
+
+        G -->|Valid — create| I["POST /api/run
+        body = varPayload"]
+        G -->|Valid — update| I
+
+        I --> J["varJobId = job_id"]
+
+        J --> K["Poll Loop
+        max 20 × 15 s = 5 min
+        GET /api/status/varJobId"]
+
+        K --> L{"status =
+        completed | failed?"}
+        L -->|No| K
+        L -->|Yes| M
+
+        M["Write_Audit_Create / Update
+        PartitionKey = mode
+        RowKey = job_id
+        status · summary · iterations"]
+    end
+
+    subgraph CUA["CUA Container App — cua-lunarair"]
+        N["POST /api/run → 202 + job_id"]
+        O["Queue poller dequeues job"]
+        P["_run_agent_core
+        Playwright + Azure OpenAI
+        computer-use-preview"]
+        Q["GET /api/status/job_id
+        status: queued→running→completed"]
+        N --> O --> P --> Q
+    end
+
+    subgraph ST["Azure Table Storage — aaaorgcuastore"]
+        R["logicAppAudit table
+        RowKey = job_id"]
+        S["cua-screenshots/{job_id}/
+        initial.jpg … iter15.jpg"]
+    end
+
+    I -->|POST| N
+    K -->|GET| Q
+    M --> R
+    P -->|screenshots| S
+
+    style A fill:#0078d4,color:#fff,stroke:none
+    style EG fill:#e8f4fd,stroke:#0078d4
+    style LA fill:#fff8e6,stroke:#f4a400
+    style CUA fill:#e8f6e8,stroke:#107c10
+    style ST fill:#fdf0f8,stroke:#a020a0
+    style Z1 fill:#e0e0e0,stroke:none
+    style Z2 fill:#ffd7d7,stroke:none

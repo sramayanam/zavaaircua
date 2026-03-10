@@ -1,0 +1,25 @@
+{
+  "records": {
+    "custcomplaints": [
+      {
+        "operation": "upsert",
+        "complaint_id": 56,
+        "passenger_id": 5,
+        "flight_id": 25,
+        "flight_number": "LA125",
+        "complaint_date": "2026-02-23T08:00:00Z",
+        "category": "Booking & Refunds",
+        "subcategory": "Refund Delay",
+        "description": "Ticket refund for cancelled connection not processed after 3 weeks.",
+        "severity": "Medium",
+        "status": "Open",
+        "assigned_agent": "Selene Park",
+        "resolution_notes": null,
+        "resolution_date": null,
+        "satisfaction_score": null
+      }
+    ],
+    "passengers": [],
+    "flights": []
+  }
+}

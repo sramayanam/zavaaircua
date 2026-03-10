@@ -1,0 +1,15 @@
+{
+  "_note": "INVALID PAYLOAD — missing required field: passenger_email. Logic App validation MUST reject this with VALIDATION_FAILED and write a 'rejected' audit record.",
+  "mode": "create",
+  "id": "SIM-INVALID-001",
+  "name": "Sim: INVALID create - missing passenger_email",
+  "passenger_name": "Adrian Novak",
+  "passenger_phone": "+1-202-555-0911",
+  "flight_number": "ZA443",
+  "pnr": "PNR-SIM-101",
+  "category": "Baggage",
+  "subcategory": "Damaged Luggage",
+  "severity": "Medium",
+  "agent": "Selene Park",
+  "complaint_description": "My hard-shell suitcase was returned to me at baggage claim with a cracked wheel housing and a broken handle. The damage was not present when I checked it in."
+}

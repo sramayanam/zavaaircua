@@ -1,0 +1,15 @@
+{
+  "id": "sim_create_refund_001",
+  "name": "Simulated Create – Refund Delay",
+  "scenario_description": "Noah Patel (Gold) is waiting on a refund for a cancelled booking on ZA303. Tests Booking & Refunds / Medium severity path.",
+  "passenger_name": "Noah Patel",
+  "passenger_email": "noah.patel@example.com",
+  "passenger_phone": "+1-555-0102",
+  "flight_number": "ZA303",
+  "pnr": "PNR-SIM-6001",
+  "category": "Booking & Refunds",
+  "subcategory": "Refund Delay",
+  "severity": "Medium",
+  "agent": "Neil Armstrong II",
+  "complaint_description": "I cancelled a booking on flight ZA303 over three weeks ago and was promised a refund within 7 business days. As of today I have not received the refund and customer service has not responded to my two follow-up emails. The total amount owed is $842."
+}

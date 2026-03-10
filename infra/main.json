@@ -1,0 +1,1939 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.37.4.10188",
+      "templateHash": "3193119278020220957"
+    }
+  },
+  "parameters": {
+    "environmentName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "metadata": {
+        "description": "Name of the AZD environment"
+      }
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Primary location for all resources"
+      }
+    },
+    "resourceGroupName": {
+      "type": "string",
+      "defaultValue": "[format('rg-{0}', parameters('environmentName'))]",
+      "metadata": {
+        "description": "Resource group name"
+      }
+    },
+    "dbHost": {
+      "type": "string",
+      "defaultValue": "aaaorgpgflexserver.postgres.database.azure.com",
+      "metadata": {
+        "description": "PostgreSQL server hostname"
+      }
+    },
+    "dbName": {
+      "type": "string",
+      "defaultValue": "airlines",
+      "metadata": {
+        "description": "PostgreSQL database name"
+      }
+    },
+    "dbUser": {
+      "type": "string",
+      "defaultValue": "adminsrram",
+      "metadata": {
+        "description": "PostgreSQL user"
+      }
+    },
+    "dbPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "PostgreSQL password"
+      }
+    },
+    "dbSchema": {
+      "type": "string",
+      "defaultValue": "custcomplaints",
+      "metadata": {
+        "description": "PostgreSQL schema"
+      }
+    },
+    "cuaApiUrl": {
+      "type": "string",
+      "defaultValue": "https://cua-lunarair.braverock-d5a3ef65.eastus2.azurecontainerapps.io",
+      "metadata": {
+        "description": "CUA Container App base URL"
+      }
+    }
+  },
+  "variables": {
+    "resourceToken": "[uniqueString(subscription().id, parameters('location'), parameters('environmentName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('resourceGroupName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "azd-env-name": "[parameters('environmentName')]"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "monitoring",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "resourceToken": {
+            "value": "[variables('resourceToken')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.37.4.10188",
+              "templateHash": "13468517002238899955"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region"
+              }
+            },
+            "resourceToken": {
+              "type": "string",
+              "metadata": {
+                "description": "Unique resource token"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "apiVersion": "2023-09-01",
+              "name": "[format('azlog{0}', parameters('resourceToken'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "sku": {
+                  "name": "PerGB2018"
+                },
+                "retentionInDays": 30
+              }
+            },
+            {
+              "type": "Microsoft.Insights/components",
+              "apiVersion": "2020-02-02",
+              "name": "[format('azai{0}', parameters('resourceToken'))]",
+              "location": "[parameters('location')]",
+              "kind": "web",
+              "properties": {
+                "Application_Type": "web",
+                "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', format('azlog{0}', parameters('resourceToken')))]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', format('azlog{0}', parameters('resourceToken')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "appInsightsConnectionString": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Insights/components', format('azai{0}', parameters('resourceToken'))), '2020-02-02').ConnectionString]"
+            },
+            "logAnalyticsWorkspaceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.OperationalInsights/workspaces', format('azlog{0}', parameters('resourceToken')))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "identity",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "resourceToken": {
+            "value": "[variables('resourceToken')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.37.4.10188",
+              "templateHash": "12928494161607339116"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region"
+              }
+            },
+            "resourceToken": {
+              "type": "string",
+              "metadata": {
+                "description": "Unique resource token"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2023-01-31",
+              "name": "[format('azid{0}', parameters('resourceToken'))]",
+              "location": "[parameters('location')]"
+            }
+          ],
+          "outputs": {
+            "managedIdentityId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('azid{0}', parameters('resourceToken')))]"
+            },
+            "managedIdentityPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('azid{0}', parameters('resourceToken'))), '2023-01-31').principalId]"
+            },
+            "managedIdentityClientId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('azid{0}', parameters('resourceToken'))), '2023-01-31').clientId]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "acr",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "resourceToken": {
+            "value": "[variables('resourceToken')]"
+          },
+          "principalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity'), '2022-09-01').outputs.managedIdentityPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.37.4.10188",
+              "templateHash": "15085697773672100332"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region"
+              }
+            },
+            "resourceToken": {
+              "type": "string",
+              "metadata": {
+                "description": "Unique resource token"
+              }
+            },
+            "principalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal ID of the managed identity to grant AcrPull"
+              }
+            }
+          },
+          "variables": {
+            "acrPullRoleId": "7f951dda-4ed3-4680-a7ca-43fe172d538d"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ContainerRegistry/registries",
+              "apiVersion": "2023-11-01-preview",
+              "name": "[format('azacr{0}', parameters('resourceToken'))]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Basic"
+              },
+              "properties": {
+                "adminUserEnabled": true
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.ContainerRegistry/registries/{0}', format('azacr{0}', parameters('resourceToken')))]",
+              "name": "[guid(resourceId('Microsoft.ContainerRegistry/registries', format('azacr{0}', parameters('resourceToken'))), parameters('principalId'), variables('acrPullRoleId'))]",
+              "properties": {
+                "principalId": "[parameters('principalId')]",
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('acrPullRoleId'))]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ContainerRegistry/registries', format('azacr{0}', parameters('resourceToken')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "acrLoginServer": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', format('azacr{0}', parameters('resourceToken'))), '2023-11-01-preview').loginServer]"
+            },
+            "acrName": {
+              "type": "string",
+              "value": "[format('azacr{0}', parameters('resourceToken'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "containerapp",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "resourceToken": {
+            "value": "[variables('resourceToken')]"
+          },
+          "appInsightsConnectionString": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.appInsightsConnectionString.value]"
+          },
+          "managedIdentityId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity'), '2022-09-01').outputs.managedIdentityId.value]"
+          },
+          "acrLoginServer": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'acr'), '2022-09-01').outputs.acrLoginServer.value]"
+          },
+          "logAnalyticsWorkspaceId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2022-09-01').outputs.logAnalyticsWorkspaceId.value]"
+          },
+          "dbHost": {
+            "value": "[parameters('dbHost')]"
+          },
+          "dbName": {
+            "value": "[parameters('dbName')]"
+          },
+          "dbUser": {
+            "value": "[parameters('dbUser')]"
+          },
+          "dbPassword": {
+            "value": "[parameters('dbPassword')]"
+          },
+          "dbSchema": {
+            "value": "[parameters('dbSchema')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.37.4.10188",
+              "templateHash": "10901518489774026397"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region"
+              }
+            },
+            "resourceToken": {
+              "type": "string",
+              "metadata": {
+                "description": "Unique resource token"
+              }
+            },
+            "appInsightsConnectionString": {
+              "type": "string",
+              "metadata": {
+                "description": "Application Insights connection string"
+              }
+            },
+            "managedIdentityId": {
+              "type": "string",
+              "metadata": {
+                "description": "User-assigned managed identity resource ID"
+              }
+            },
+            "acrLoginServer": {
+              "type": "string",
+              "metadata": {
+                "description": "ACR login server"
+              }
+            },
+            "logAnalyticsWorkspaceId": {
+              "type": "string",
+              "metadata": {
+                "description": "Log Analytics workspace ID for Container App Environment"
+              }
+            },
+            "dbHost": {
+              "type": "string"
+            },
+            "dbName": {
+              "type": "string"
+            },
+            "dbUser": {
+              "type": "string"
+            },
+            "dbPassword": {
+              "type": "securestring"
+            },
+            "dbSchema": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.App/managedEnvironments",
+              "apiVersion": "2024-03-01",
+              "name": "[format('azcae{0}', parameters('resourceToken'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "appLogsConfiguration": {
+                  "destination": "log-analytics",
+                  "logAnalyticsConfiguration": {
+                    "customerId": "[reference(parameters('logAnalyticsWorkspaceId'), '2023-09-01').customerId]",
+                    "sharedKey": "[listKeys(parameters('logAnalyticsWorkspaceId'), '2023-09-01').primarySharedKey]"
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.App/containerApps",
+              "apiVersion": "2024-03-01",
+              "name": "[format('azca{0}', parameters('resourceToken'))]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "azd-service-name": "web"
+              },
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('managedIdentityId'))]": {}
+                }
+              },
+              "properties": {
+                "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', format('azcae{0}', parameters('resourceToken')))]",
+                "configuration": {
+                  "ingress": {
+                    "external": true,
+                    "targetPort": 3000,
+                    "transport": "http",
+                    "allowInsecure": false
+                  },
+                  "registries": [
+                    {
+                      "server": "[parameters('acrLoginServer')]",
+                      "identity": "[parameters('managedIdentityId')]"
+                    }
+                  ],
+                  "secrets": [
+                    {
+                      "name": "db-password",
+                      "value": "[parameters('dbPassword')]"
+                    }
+                  ]
+                },
+                "template": {
+                  "containers": [
+                    {
+                      "name": "web",
+                      "image": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+                      "resources": {
+                        "cpu": "[json('0.5')]",
+                        "memory": "1Gi"
+                      },
+                      "env": [
+                        {
+                          "name": "DB_HOST",
+                          "value": "[parameters('dbHost')]"
+                        },
+                        {
+                          "name": "DB_PORT",
+                          "value": "5432"
+                        },
+                        {
+                          "name": "DB_NAME",
+                          "value": "[parameters('dbName')]"
+                        },
+                        {
+                          "name": "DB_USER",
+                          "value": "[parameters('dbUser')]"
+                        },
+                        {
+                          "name": "DB_PASSWORD",
+                          "secretRef": "db-password"
+                        },
+                        {
+                          "name": "DB_SCHEMA",
+                          "value": "[parameters('dbSchema')]"
+                        },
+                        {
+                          "name": "DB_SSL",
+                          "value": "true"
+                        },
+                        {
+                          "name": "PORT",
+                          "value": "3000"
+                        },
+                        {
+                          "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                          "value": "[parameters('appInsightsConnectionString')]"
+                        }
+                      ]
+                    }
+                  ],
+                  "scale": {
+                    "minReplicas": 0,
+                    "maxReplicas": 1
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/managedEnvironments', format('azcae{0}', parameters('resourceToken')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "webAppUrl": {
+              "type": "string",
+              "value": "[format('https://{0}', reference(resourceId('Microsoft.App/containerApps', format('azca{0}', parameters('resourceToken'))), '2024-03-01').configuration.ingress.fqdn)]"
+            },
+            "webAppName": {
+              "type": "string",
+              "value": "[format('azca{0}', parameters('resourceToken'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'acr')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "logicapp",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "resourceToken": {
+            "value": "[variables('resourceToken')]"
+          },
+          "cuaApiUrl": {
+            "value": "[parameters('cuaApiUrl')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.37.4.10188",
+              "templateHash": "4020613624509579509"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region"
+              }
+            },
+            "resourceToken": {
+              "type": "string",
+              "metadata": {
+                "description": "Unique resource token used for naming"
+              }
+            },
+            "storageAccountName": {
+              "type": "string",
+              "defaultValue": "aaaorgcuastore",
+              "metadata": {
+                "description": "Storage account name (aaaorgcuastore) – must already exist"
+              }
+            },
+            "storageAccountResourceGroup": {
+              "type": "string",
+              "defaultValue": "rg-databases",
+              "metadata": {
+                "description": "Resource group that owns the storage account (different from the Logic App RG)"
+              }
+            },
+            "cuaApiUrl": {
+              "type": "string",
+              "defaultValue": "https://cua-lunarair.braverock-d5a3ef65.eastus2.azurecontainerapps.io",
+              "metadata": {
+                "description": "CUA Container App base URL"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Web/connections",
+              "apiVersion": "2016-06-01",
+              "name": "[format('azblob-{0}', parameters('resourceToken'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "displayName": "azblob-cua-payloads",
+                "api": {
+                  "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'azureblob')]"
+                },
+                "parameterValues": {
+                  "accountName": "[parameters('storageAccountName')]",
+                  "accessKey": "[listKeys(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('storageAccountResourceGroup')), 'Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2023-05-01').keys[0].value]"
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Logic/workflows",
+              "apiVersion": "2019-05-01",
+              "name": "[format('la-cua-rpa-{0}', parameters('resourceToken'))]",
+              "location": "[parameters('location')]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "state": "Enabled",
+                "parameters": {
+                  "$connections": {
+                    "value": {
+                      "azureblob": {
+                        "connectionId": "[resourceId('Microsoft.Web/connections', format('azblob-{0}', parameters('resourceToken')))]",
+                        "connectionName": "[format('azblob-{0}', parameters('resourceToken'))]",
+                        "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'azureblob')]"
+                      }
+                    }
+                  }
+                },
+                "definition": {
+                  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                  "contentVersion": "1.0.0.0",
+                  "parameters": {
+                    "$connections": {
+                      "defaultValue": {},
+                      "type": "Object"
+                    },
+                    "cuaApiUrl": {
+                      "defaultValue": "[parameters('cuaApiUrl')]",
+                      "type": "String"
+                    },
+                    "storageAccountName": {
+                      "defaultValue": "[parameters('storageAccountName')]",
+                      "type": "String"
+                    }
+                  },
+                  "triggers": {
+                    "When_a_blob_is_added_or_modified": {
+                      "type": "ApiConnection",
+                      "recurrence": {
+                        "frequency": "Minute",
+                        "interval": 1
+                      },
+                      "inputs": {
+                        "host": {
+                          "connection": {
+                            "name": "@parameters('$connections')['azureblob']['connectionId']"
+                          }
+                        },
+                        "method": "get",
+                        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/triggers/batch/onupdatedfile",
+                        "queries": {
+                          "folderId": "JTJmcGF5bG9hZHM=",
+                          "maxFileCount": 10,
+                          "includeFileContent": false
+                        }
+                      },
+                      "splitOn": "@triggerBody()"
+                    }
+                  },
+                  "actions": {
+                    "Get_Blob_Content": {
+                      "type": "ApiConnection",
+                      "runAfter": {},
+                      "inputs": {
+                        "host": {
+                          "connection": {
+                            "name": "@parameters('$connections')['azureblob']['connectionId']"
+                          }
+                        },
+                        "method": "get",
+                        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('AccountNameFromSettings'))}/files/@{encodeURIComponent(encodeURIComponent(triggerBody()?['Path']))}/content",
+                        "queries": {
+                          "inferContentType": true
+                        }
+                      }
+                    },
+                    "Parse_Payload_JSON": {
+                      "type": "ParseJson",
+                      "runAfter": {
+                        "Get_Blob_Content": [
+                          "Succeeded"
+                        ]
+                      },
+                      "inputs": {
+                        "content": "@body('Get_Blob_Content')",
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "mode": {
+                              "type": "string"
+                            },
+                            "operation": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "passenger_name": {
+                              "type": "string"
+                            },
+                            "passenger_email": {
+                              "type": "string"
+                            },
+                            "passenger_phone": {
+                              "type": "string"
+                            },
+                            "flight_number": {
+                              "type": "string"
+                            },
+                            "pnr": {
+                              "type": "string"
+                            },
+                            "category": {
+                              "type": "string"
+                            },
+                            "subcategory": {
+                              "type": "string"
+                            },
+                            "severity": {
+                              "type": "string"
+                            },
+                            "agent": {
+                              "type": "string"
+                            },
+                            "complaint_description": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "target_passenger_name": {
+                              "type": "string"
+                            },
+                            "target_flight_number": {
+                              "type": "string"
+                            },
+                            "target_pnr": {
+                              "type": "string"
+                            },
+                            "new_status": {
+                              "type": "string"
+                            },
+                            "new_severity": {
+                              "type": "string"
+                            },
+                            "new_agent": {
+                              "type": "string"
+                            },
+                            "new_score": {
+                              "type": "string"
+                            },
+                            "new_notes": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "Detect_Mode": {
+                      "type": "InitializeVariable",
+                      "runAfter": {
+                        "Parse_Payload_JSON": [
+                          "Succeeded"
+                        ]
+                      },
+                      "inputs": {
+                        "variables": [
+                          {
+                            "name": "varMode",
+                            "type": "string",
+                            "value": "@{if(or(equals(toLower(coalesce(body('Parse_Payload_JSON')?['mode'],'')),'create'),equals(toLower(coalesce(body('Parse_Payload_JSON')?['mode'],'')),'update')),toLower(coalesce(body('Parse_Payload_JSON')?['mode'],'')),if(or(equals(toLower(coalesce(body('Parse_Payload_JSON')?['operation'],'')),'create'),equals(toLower(coalesce(body('Parse_Payload_JSON')?['operation'],'')),'update')),toLower(coalesce(body('Parse_Payload_JSON')?['operation'],'')),if(not(empty(coalesce(body('Parse_Payload_JSON')?['target_passenger_name'],''))),'update','create')))}"
+                          }
+                        ]
+                      }
+                    },
+                    "Init_JobId": {
+                      "type": "InitializeVariable",
+                      "runAfter": {
+                        "Detect_Mode": [
+                          "Succeeded"
+                        ]
+                      },
+                      "inputs": {
+                        "variables": [
+                          {
+                            "name": "varJobId",
+                            "type": "string",
+                            "value": ""
+                          }
+                        ]
+                      }
+                    },
+                    "Init_JobStatus": {
+                      "type": "InitializeVariable",
+                      "runAfter": {
+                        "Init_JobId": [
+                          "Succeeded"
+                        ]
+                      },
+                      "inputs": {
+                        "variables": [
+                          {
+                            "name": "varJobStatus",
+                            "type": "string",
+                            "value": "queued"
+                          }
+                        ]
+                      }
+                    },
+                    "Init_PollCount": {
+                      "type": "InitializeVariable",
+                      "runAfter": {
+                        "Init_JobStatus": [
+                          "Succeeded"
+                        ]
+                      },
+                      "inputs": {
+                        "variables": [
+                          {
+                            "name": "varPollCount",
+                            "type": "integer",
+                            "value": 0
+                          }
+                        ]
+                      }
+                    },
+                    "Init_Summary": {
+                      "type": "InitializeVariable",
+                      "runAfter": {
+                        "Init_PollCount": [
+                          "Succeeded"
+                        ]
+                      },
+                      "inputs": {
+                        "variables": [
+                          {
+                            "name": "varSummary",
+                            "type": "string",
+                            "value": ""
+                          }
+                        ]
+                      }
+                    },
+                    "Validate_Payload": {
+                      "type": "If",
+                      "runAfter": {
+                        "Init_Summary": [
+                          "Succeeded"
+                        ]
+                      },
+                      "expression": {
+                        "and": [
+                          {
+                            "or": [
+                              {
+                                "equals": [
+                                  "@variables('varMode')",
+                                  "create"
+                                ]
+                              },
+                              {
+                                "equals": [
+                                  "@variables('varMode')",
+                                  "update"
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "actions": {
+                        "Validate_Create_Or_Update": {
+                          "type": "If",
+                          "runAfter": {},
+                          "expression": {
+                            "and": [
+                              {
+                                "equals": [
+                                  "@variables('varMode')",
+                                  "create"
+                                ]
+                              }
+                            ]
+                          },
+                          "actions": {
+                            "Check_Create_Required_Fields": {
+                              "type": "If",
+                              "runAfter": {},
+                              "expression": {
+                                "and": [
+                                  {
+                                    "not": {
+                                      "equals": [
+                                        "@coalesce(body('Parse_Payload_JSON')?['passenger_name'],'')",
+                                        ""
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "not": {
+                                      "equals": [
+                                        "@coalesce(body('Parse_Payload_JSON')?['passenger_email'],'')",
+                                        ""
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "not": {
+                                      "equals": [
+                                        "@coalesce(body('Parse_Payload_JSON')?['passenger_phone'],'')",
+                                        ""
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "not": {
+                                      "equals": [
+                                        "@coalesce(body('Parse_Payload_JSON')?['flight_number'],'')",
+                                        ""
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "not": {
+                                      "equals": [
+                                        "@coalesce(body('Parse_Payload_JSON')?['pnr'],'')",
+                                        ""
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "not": {
+                                      "equals": [
+                                        "@coalesce(body('Parse_Payload_JSON')?['category'],'')",
+                                        ""
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "not": {
+                                      "equals": [
+                                        "@coalesce(body('Parse_Payload_JSON')?['subcategory'],'')",
+                                        ""
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "not": {
+                                      "equals": [
+                                        "@coalesce(body('Parse_Payload_JSON')?['severity'],'')",
+                                        ""
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "not": {
+                                      "equals": [
+                                        "@coalesce(body('Parse_Payload_JSON')?['agent'],'')",
+                                        ""
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "not": {
+                                      "and": [
+                                        {
+                                          "equals": [
+                                            "@coalesce(body('Parse_Payload_JSON')?['complaint_description'],'')",
+                                            ""
+                                          ]
+                                        },
+                                        {
+                                          "equals": [
+                                            "@coalesce(body('Parse_Payload_JSON')?['description'],'')",
+                                            ""
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  {
+                                    "or": [
+                                      {
+                                        "equals": [
+                                          "@body('Parse_Payload_JSON')?['severity']",
+                                          "Low"
+                                        ]
+                                      },
+                                      {
+                                        "equals": [
+                                          "@body('Parse_Payload_JSON')?['severity']",
+                                          "Medium"
+                                        ]
+                                      },
+                                      {
+                                        "equals": [
+                                          "@body('Parse_Payload_JSON')?['severity']",
+                                          "High"
+                                        ]
+                                      },
+                                      {
+                                        "equals": [
+                                          "@body('Parse_Payload_JSON')?['severity']",
+                                          "Critical"
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "or": [
+                                      {
+                                        "equals": [
+                                          "@body('Parse_Payload_JSON')?['category']",
+                                          "Baggage"
+                                        ]
+                                      },
+                                      {
+                                        "equals": [
+                                          "@body('Parse_Payload_JSON')?['category']",
+                                          "Flight Operations"
+                                        ]
+                                      },
+                                      {
+                                        "equals": [
+                                          "@body('Parse_Payload_JSON')?['category']",
+                                          "Booking & Refunds"
+                                        ]
+                                      },
+                                      {
+                                        "equals": [
+                                          "@body('Parse_Payload_JSON')?['category']",
+                                          "Safety"
+                                        ]
+                                      },
+                                      {
+                                        "equals": [
+                                          "@body('Parse_Payload_JSON')?['category']",
+                                          "Seating"
+                                        ]
+                                      },
+                                      {
+                                        "equals": [
+                                          "@body('Parse_Payload_JSON')?['category']",
+                                          "Special Assistance"
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "actions": {
+                                "Post_To_CUA_API_Create": {
+                                  "type": "Http",
+                                  "runAfter": {},
+                                  "inputs": {
+                                    "method": "POST",
+                                    "uri": "@{parameters('cuaApiUrl')}/api/run",
+                                    "headers": {
+                                      "Content-Type": "application/json"
+                                    },
+                                    "body": "@body('Parse_Payload_JSON')",
+                                    "retryPolicy": {
+                                      "type": "fixed",
+                                      "count": 2,
+                                      "interval": "PT10S"
+                                    }
+                                  }
+                                },
+                                "Parse_Run_Response_Create": {
+                                  "type": "ParseJson",
+                                  "runAfter": {
+                                    "Post_To_CUA_API_Create": [
+                                      "Succeeded"
+                                    ]
+                                  },
+                                  "inputs": {
+                                    "content": "@body('Post_To_CUA_API_Create')",
+                                    "schema": {
+                                      "type": "object",
+                                      "properties": {
+                                        "job_id": {
+                                          "type": "string"
+                                        },
+                                        "status": {
+                                          "type": "string"
+                                        },
+                                        "poll_url": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "Set_JobId_Create": {
+                                  "type": "SetVariable",
+                                  "runAfter": {
+                                    "Parse_Run_Response_Create": [
+                                      "Succeeded"
+                                    ]
+                                  },
+                                  "inputs": {
+                                    "name": "varJobId",
+                                    "value": "@body('Parse_Run_Response_Create')?['job_id']"
+                                  }
+                                },
+                                "Set_JobStatus_Create": {
+                                  "type": "SetVariable",
+                                  "runAfter": {
+                                    "Set_JobId_Create": [
+                                      "Succeeded"
+                                    ]
+                                  },
+                                  "inputs": {
+                                    "name": "varJobStatus",
+                                    "value": "@coalesce(body('Parse_Run_Response_Create')?['status'],'queued')"
+                                  }
+                                },
+                                "Poll_Until_Done_Create": {
+                                  "type": "Until",
+                                  "runAfter": {
+                                    "Set_JobStatus_Create": [
+                                      "Succeeded"
+                                    ]
+                                  },
+                                  "expression": "@or(or(equals(variables('varJobStatus'),'completed'),equals(variables('varJobStatus'),'failed')),greaterOrEquals(variables('varPollCount'),20))",
+                                  "limit": {
+                                    "count": 20,
+                                    "timeout": "PT10M"
+                                  },
+                                  "actions": {
+                                    "Delay_15s_Create": {
+                                      "type": "Wait",
+                                      "runAfter": {},
+                                      "inputs": {
+                                        "interval": {
+                                          "count": 15,
+                                          "unit": "Second"
+                                        }
+                                      }
+                                    },
+                                    "Get_Job_Status_Create": {
+                                      "type": "Http",
+                                      "runAfter": {
+                                        "Delay_15s_Create": [
+                                          "Succeeded"
+                                        ]
+                                      },
+                                      "inputs": {
+                                        "method": "GET",
+                                        "uri": "@{parameters('cuaApiUrl')}/api/status/@{variables('varJobId')}"
+                                      }
+                                    },
+                                    "Parse_Status_Response_Create": {
+                                      "type": "ParseJson",
+                                      "runAfter": {
+                                        "Get_Job_Status_Create": [
+                                          "Succeeded"
+                                        ]
+                                      },
+                                      "inputs": {
+                                        "content": "@body('Get_Job_Status_Create')",
+                                        "schema": {
+                                          "type": "object",
+                                          "properties": {
+                                            "status": {
+                                              "type": "string"
+                                            },
+                                            "summary": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "Update_JobStatus_Create": {
+                                      "type": "SetVariable",
+                                      "runAfter": {
+                                        "Parse_Status_Response_Create": [
+                                          "Succeeded"
+                                        ]
+                                      },
+                                      "inputs": {
+                                        "name": "varJobStatus",
+                                        "value": "@coalesce(body('Parse_Status_Response_Create')?['status'],'running')"
+                                      }
+                                    },
+                                    "Update_Summary_Create": {
+                                      "type": "SetVariable",
+                                      "runAfter": {
+                                        "Update_JobStatus_Create": [
+                                          "Succeeded"
+                                        ]
+                                      },
+                                      "inputs": {
+                                        "name": "varSummary",
+                                        "value": "@coalesce(body('Parse_Status_Response_Create')?['summary'],variables('varSummary'))"
+                                      }
+                                    },
+                                    "Increment_PollCount_Create": {
+                                      "type": "IncrementVariable",
+                                      "runAfter": {
+                                        "Update_Summary_Create": [
+                                          "Succeeded"
+                                        ]
+                                      },
+                                      "inputs": {
+                                        "name": "varPollCount",
+                                        "value": 1
+                                      }
+                                    }
+                                  }
+                                },
+                                "Write_Audit_Create": {
+                                  "type": "Http",
+                                  "runAfter": {
+                                    "Poll_Until_Done_Create": [
+                                      "Succeeded",
+                                      "Failed",
+                                      "TimedOut"
+                                    ]
+                                  },
+                                  "inputs": {
+                                    "method": "POST",
+                                    "uri": "https://@{parameters('storageAccountName')}.table.core.windows.net/logicAppAudit",
+                                    "headers": {
+                                      "Content-Type": "application/json",
+                                      "Accept": "application/json;odata=nometadata",
+                                      "x-ms-version": "2021-12-02",
+                                      "x-ms-date": "@{utcNow('R')}"
+                                    },
+                                    "authentication": {
+                                      "type": "ManagedServiceIdentity",
+                                      "audience": "https://storage.azure.com/"
+                                    },
+                                    "body": {
+                                      "PartitionKey": "@{formatDateTime(utcNow(),'yyyy-MM-dd')}",
+                                      "RowKey": "@{if(empty(variables('varJobId')),guid(),variables('varJobId'))}",
+                                      "BlobPath": "@{triggerBody()?['Path']}",
+                                      "Mode": "create",
+                                      "FinalStatus": "@{variables('varJobStatus')}",
+                                      "Summary": "@{variables('varSummary')}",
+                                      "PollCount": "@{variables('varPollCount')}",
+                                      "CompletedAt": "@{utcNow()}",
+                                      "PassengerName": "@{coalesce(body('Parse_Payload_JSON')?['passenger_name'],'')}",
+                                      "FlightNumber": "@{coalesce(body('Parse_Payload_JSON')?['flight_number'],'')}",
+                                      "Pnr": "@{coalesce(body('Parse_Payload_JSON')?['pnr'],'')}"
+                                    }
+                                  }
+                                }
+                              },
+                              "else": {
+                                "actions": {
+                                  "Write_Audit_Rejected_Create": {
+                                    "type": "Http",
+                                    "runAfter": {},
+                                    "inputs": {
+                                      "method": "POST",
+                                      "uri": "https://@{parameters('storageAccountName')}.table.core.windows.net/logicAppAudit",
+                                      "headers": {
+                                        "Content-Type": "application/json",
+                                        "Accept": "application/json;odata=nometadata",
+                                        "x-ms-version": "2021-12-02",
+                                        "x-ms-date": "@{utcNow('R')}"
+                                      },
+                                      "authentication": {
+                                        "type": "ManagedServiceIdentity",
+                                        "audience": "https://storage.azure.com/"
+                                      },
+                                      "body": {
+                                        "PartitionKey": "@{formatDateTime(utcNow(),'yyyy-MM-dd')}",
+                                        "RowKey": "@{guid()}",
+                                        "BlobPath": "@{triggerBody()?['Path']}",
+                                        "Mode": "create",
+                                        "FinalStatus": "rejected",
+                                        "Summary": "Payload failed create validation: required fields missing or enum value invalid (severity/category).",
+                                        "PollCount": 0,
+                                        "CompletedAt": "@{utcNow()}"
+                                      }
+                                    }
+                                  },
+                                  "Terminate_Rejected_Create": {
+                                    "type": "Terminate",
+                                    "runAfter": {
+                                      "Write_Audit_Rejected_Create": [
+                                        "Succeeded",
+                                        "Failed"
+                                      ]
+                                    },
+                                    "inputs": {
+                                      "runStatus": "Failed",
+                                      "runError": {
+                                        "code": "VALIDATION_FAILED",
+                                        "message": "Create payload rejected: required fields missing or enum value out of range."
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "else": {
+                            "actions": {
+                              "Check_Update_Required_Fields": {
+                                "type": "If",
+                                "runAfter": {},
+                                "expression": {
+                                  "and": [
+                                    {
+                                      "not": {
+                                        "equals": [
+                                          "@coalesce(body('Parse_Payload_JSON')?['target_passenger_name'],'')",
+                                          ""
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "not": {
+                                        "equals": [
+                                          "@coalesce(body('Parse_Payload_JSON')?['target_flight_number'],'')",
+                                          ""
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "not": {
+                                        "equals": [
+                                          "@coalesce(body('Parse_Payload_JSON')?['target_pnr'],'')",
+                                          ""
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "not": {
+                                        "equals": [
+                                          "@coalesce(body('Parse_Payload_JSON')?['new_status'],'')",
+                                          ""
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "not": {
+                                        "equals": [
+                                          "@coalesce(body('Parse_Payload_JSON')?['new_severity'],'')",
+                                          ""
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "not": {
+                                        "equals": [
+                                          "@coalesce(body('Parse_Payload_JSON')?['new_agent'],'')",
+                                          ""
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "not": {
+                                        "equals": [
+                                          "@coalesce(body('Parse_Payload_JSON')?['new_score'],'')",
+                                          ""
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "not": {
+                                        "equals": [
+                                          "@coalesce(body('Parse_Payload_JSON')?['new_notes'],'')",
+                                          ""
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "or": [
+                                        {
+                                          "equals": [
+                                            "@body('Parse_Payload_JSON')?['new_status']",
+                                            "Open"
+                                          ]
+                                        },
+                                        {
+                                          "equals": [
+                                            "@body('Parse_Payload_JSON')?['new_status']",
+                                            "Under Review"
+                                          ]
+                                        },
+                                        {
+                                          "equals": [
+                                            "@body('Parse_Payload_JSON')?['new_status']",
+                                            "Resolved"
+                                          ]
+                                        },
+                                        {
+                                          "equals": [
+                                            "@body('Parse_Payload_JSON')?['new_status']",
+                                            "Closed"
+                                          ]
+                                        },
+                                        {
+                                          "equals": [
+                                            "@body('Parse_Payload_JSON')?['new_status']",
+                                            "Escalated"
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "or": [
+                                        {
+                                          "equals": [
+                                            "@body('Parse_Payload_JSON')?['new_severity']",
+                                            "Low"
+                                          ]
+                                        },
+                                        {
+                                          "equals": [
+                                            "@body('Parse_Payload_JSON')?['new_severity']",
+                                            "Medium"
+                                          ]
+                                        },
+                                        {
+                                          "equals": [
+                                            "@body('Parse_Payload_JSON')?['new_severity']",
+                                            "High"
+                                          ]
+                                        },
+                                        {
+                                          "equals": [
+                                            "@body('Parse_Payload_JSON')?['new_severity']",
+                                            "Critical"
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "actions": {
+                                  "Post_To_CUA_API_Update": {
+                                    "type": "Http",
+                                    "runAfter": {},
+                                    "inputs": {
+                                      "method": "POST",
+                                      "uri": "@{parameters('cuaApiUrl')}/api/run",
+                                      "headers": {
+                                        "Content-Type": "application/json"
+                                      },
+                                      "body": "@body('Parse_Payload_JSON')",
+                                      "retryPolicy": {
+                                        "type": "fixed",
+                                        "count": 2,
+                                        "interval": "PT10S"
+                                      }
+                                    }
+                                  },
+                                  "Parse_Run_Response_Update": {
+                                    "type": "ParseJson",
+                                    "runAfter": {
+                                      "Post_To_CUA_API_Update": [
+                                        "Succeeded"
+                                      ]
+                                    },
+                                    "inputs": {
+                                      "content": "@body('Post_To_CUA_API_Update')",
+                                      "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                          "job_id": {
+                                            "type": "string"
+                                          },
+                                          "status": {
+                                            "type": "string"
+                                          },
+                                          "poll_url": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "Set_JobId_Update": {
+                                    "type": "SetVariable",
+                                    "runAfter": {
+                                      "Parse_Run_Response_Update": [
+                                        "Succeeded"
+                                      ]
+                                    },
+                                    "inputs": {
+                                      "name": "varJobId",
+                                      "value": "@body('Parse_Run_Response_Update')?['job_id']"
+                                    }
+                                  },
+                                  "Set_JobStatus_Update": {
+                                    "type": "SetVariable",
+                                    "runAfter": {
+                                      "Set_JobId_Update": [
+                                        "Succeeded"
+                                      ]
+                                    },
+                                    "inputs": {
+                                      "name": "varJobStatus",
+                                      "value": "@coalesce(body('Parse_Run_Response_Update')?['status'],'queued')"
+                                    }
+                                  },
+                                  "Poll_Until_Done_Update": {
+                                    "type": "Until",
+                                    "runAfter": {
+                                      "Set_JobStatus_Update": [
+                                        "Succeeded"
+                                      ]
+                                    },
+                                    "expression": "@or(or(equals(variables('varJobStatus'),'completed'),equals(variables('varJobStatus'),'failed')),greaterOrEquals(variables('varPollCount'),20))",
+                                    "limit": {
+                                      "count": 20,
+                                      "timeout": "PT10M"
+                                    },
+                                    "actions": {
+                                      "Delay_15s_Update": {
+                                        "type": "Wait",
+                                        "runAfter": {},
+                                        "inputs": {
+                                          "interval": {
+                                            "count": 15,
+                                            "unit": "Second"
+                                          }
+                                        }
+                                      },
+                                      "Get_Job_Status_Update": {
+                                        "type": "Http",
+                                        "runAfter": {
+                                          "Delay_15s_Update": [
+                                            "Succeeded"
+                                          ]
+                                        },
+                                        "inputs": {
+                                          "method": "GET",
+                                          "uri": "@{parameters('cuaApiUrl')}/api/status/@{variables('varJobId')}"
+                                        }
+                                      },
+                                      "Parse_Status_Response_Update": {
+                                        "type": "ParseJson",
+                                        "runAfter": {
+                                          "Get_Job_Status_Update": [
+                                            "Succeeded"
+                                          ]
+                                        },
+                                        "inputs": {
+                                          "content": "@body('Get_Job_Status_Update')",
+                                          "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                              "status": {
+                                                "type": "string"
+                                              },
+                                              "summary": {
+                                                "type": "string"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "Update_JobStatus_Update": {
+                                        "type": "SetVariable",
+                                        "runAfter": {
+                                          "Parse_Status_Response_Update": [
+                                            "Succeeded"
+                                          ]
+                                        },
+                                        "inputs": {
+                                          "name": "varJobStatus",
+                                          "value": "@coalesce(body('Parse_Status_Response_Update')?['status'],'running')"
+                                        }
+                                      },
+                                      "Update_Summary_Update": {
+                                        "type": "SetVariable",
+                                        "runAfter": {
+                                          "Update_JobStatus_Update": [
+                                            "Succeeded"
+                                          ]
+                                        },
+                                        "inputs": {
+                                          "name": "varSummary",
+                                          "value": "@coalesce(body('Parse_Status_Response_Update')?['summary'],variables('varSummary'))"
+                                        }
+                                      },
+                                      "Increment_PollCount_Update": {
+                                        "type": "IncrementVariable",
+                                        "runAfter": {
+                                          "Update_Summary_Update": [
+                                            "Succeeded"
+                                          ]
+                                        },
+                                        "inputs": {
+                                          "name": "varPollCount",
+                                          "value": 1
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "Write_Audit_Update": {
+                                    "type": "Http",
+                                    "runAfter": {
+                                      "Poll_Until_Done_Update": [
+                                        "Succeeded",
+                                        "Failed",
+                                        "TimedOut"
+                                      ]
+                                    },
+                                    "inputs": {
+                                      "method": "POST",
+                                      "uri": "https://@{parameters('storageAccountName')}.table.core.windows.net/logicAppAudit",
+                                      "headers": {
+                                        "Content-Type": "application/json",
+                                        "Accept": "application/json;odata=nometadata",
+                                        "x-ms-version": "2021-12-02",
+                                        "x-ms-date": "@{utcNow('R')}"
+                                      },
+                                      "authentication": {
+                                        "type": "ManagedServiceIdentity",
+                                        "audience": "https://storage.azure.com/"
+                                      },
+                                      "body": {
+                                        "PartitionKey": "@{formatDateTime(utcNow(),'yyyy-MM-dd')}",
+                                        "RowKey": "@{if(empty(variables('varJobId')),guid(),variables('varJobId'))}",
+                                        "BlobPath": "@{triggerBody()?['Path']}",
+                                        "Mode": "update",
+                                        "FinalStatus": "@{variables('varJobStatus')}",
+                                        "Summary": "@{variables('varSummary')}",
+                                        "PollCount": "@{variables('varPollCount')}",
+                                        "CompletedAt": "@{utcNow()}",
+                                        "TargetPassengerName": "@{coalesce(body('Parse_Payload_JSON')?['target_passenger_name'],'')}",
+                                        "TargetFlightNumber": "@{coalesce(body('Parse_Payload_JSON')?['target_flight_number'],'')}",
+                                        "TargetPnr": "@{coalesce(body('Parse_Payload_JSON')?['target_pnr'],'')}",
+                                        "NewStatus": "@{coalesce(body('Parse_Payload_JSON')?['new_status'],'')}"
+                                      }
+                                    }
+                                  }
+                                },
+                                "else": {
+                                  "actions": {
+                                    "Write_Audit_Rejected_Update": {
+                                      "type": "Http",
+                                      "runAfter": {},
+                                      "inputs": {
+                                        "method": "POST",
+                                        "uri": "https://@{parameters('storageAccountName')}.table.core.windows.net/logicAppAudit",
+                                        "headers": {
+                                          "Content-Type": "application/json",
+                                          "Accept": "application/json;odata=nometadata",
+                                          "x-ms-version": "2021-12-02",
+                                          "x-ms-date": "@{utcNow('R')}"
+                                        },
+                                        "authentication": {
+                                          "type": "ManagedServiceIdentity",
+                                          "audience": "https://storage.azure.com/"
+                                        },
+                                        "body": {
+                                          "PartitionKey": "@{formatDateTime(utcNow(),'yyyy-MM-dd')}",
+                                          "RowKey": "@{guid()}",
+                                          "BlobPath": "@{triggerBody()?['Path']}",
+                                          "Mode": "update",
+                                          "FinalStatus": "rejected",
+                                          "Summary": "Payload failed update validation: required fields missing or enum value invalid (new_status/new_severity).",
+                                          "PollCount": 0,
+                                          "CompletedAt": "@{utcNow()}"
+                                        }
+                                      }
+                                    },
+                                    "Terminate_Rejected_Update": {
+                                      "type": "Terminate",
+                                      "runAfter": {
+                                        "Write_Audit_Rejected_Update": [
+                                          "Succeeded",
+                                          "Failed"
+                                        ]
+                                      },
+                                      "inputs": {
+                                        "runStatus": "Failed",
+                                        "runError": {
+                                          "code": "VALIDATION_FAILED",
+                                          "message": "Update payload rejected: required fields missing or enum value out of range."
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "else": {
+                        "actions": {
+                          "Write_Audit_Unknown_Mode": {
+                            "type": "Http",
+                            "runAfter": {},
+                            "inputs": {
+                              "method": "POST",
+                              "uri": "https://@{parameters('storageAccountName')}.table.core.windows.net/logicAppAudit",
+                              "headers": {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json;odata=nometadata",
+                                "x-ms-version": "2021-12-02",
+                                "x-ms-date": "@{utcNow('R')}"
+                              },
+                              "authentication": {
+                                "type": "ManagedServiceIdentity",
+                                "audience": "https://storage.azure.com/"
+                              },
+                              "body": {
+                                "PartitionKey": "@{formatDateTime(utcNow(),'yyyy-MM-dd')}",
+                                "RowKey": "@{guid()}",
+                                "BlobPath": "@{triggerBody()?['Path']}",
+                                "Mode": "@{variables('varMode')}",
+                                "FinalStatus": "rejected",
+                                "Summary": "Could not determine mode (create/update) from payload. Neither mode/operation field is valid nor update-specific keys are present.",
+                                "PollCount": 0,
+                                "CompletedAt": "@{utcNow()}"
+                              }
+                            }
+                          },
+                          "Terminate_Unknown_Mode": {
+                            "type": "Terminate",
+                            "runAfter": {
+                              "Write_Audit_Unknown_Mode": [
+                                "Succeeded",
+                                "Failed"
+                              ]
+                            },
+                            "inputs": {
+                              "runStatus": "Failed",
+                              "runError": {
+                                "code": "UNKNOWN_MODE",
+                                "message": "Could not determine payload mode (create/update). Check mode/operation field."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "outputs": {}
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', format('azblob-{0}', parameters('resourceToken')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "logicAppId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Logic/workflows', format('la-cua-rpa-{0}', parameters('resourceToken')))]"
+            },
+            "logicAppName": {
+              "type": "string",
+              "value": "[format('la-cua-rpa-{0}', parameters('resourceToken'))]"
+            },
+            "logicAppPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Logic/workflows', format('la-cua-rpa-{0}', parameters('resourceToken'))), '2019-05-01', 'full').identity.principalId]"
+            },
+            "blobConnectionId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Web/connections', format('azblob-{0}', parameters('resourceToken')))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "logicapp-rbac",
+      "resourceGroup": "rg-databases",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "logicAppPrincipalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'logicapp'), '2022-09-01').outputs.logicAppPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.37.4.10188",
+              "templateHash": "14526375166353592433"
+            }
+          },
+          "parameters": {
+            "logicAppPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal ID of the Logic App system-assigned managed identity"
+              }
+            },
+            "storageAccountName": {
+              "type": "string",
+              "defaultValue": "aaaorgcuastore",
+              "metadata": {
+                "description": "Storage account name (aaaorgcuastore) – must already exist in this resource group"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.Storage/storageAccounts/{0}', parameters('storageAccountName'))]",
+              "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), parameters('logicAppPrincipalId'), 'blob-data-reader')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1')]",
+                "principalId": "[parameters('logicAppPrincipalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.Storage/storageAccounts/{0}', parameters('storageAccountName'))]",
+              "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), parameters('logicAppPrincipalId'), 'table-data-contributor')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3')]",
+                "principalId": "[parameters('logicAppPrincipalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'logicapp')]"
+      ]
+    }
+  ],
+  "outputs": {
+    "RESOURCE_GROUP_ID": {
+      "type": "string",
+      "value": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+    },
+    "WEBAPP_URL": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'containerapp'), '2022-09-01').outputs.webAppUrl.value]"
+    },
+    "WEBAPP_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'containerapp'), '2022-09-01').outputs.webAppName.value]"
+    },
+    "AZURE_CONTAINER_REGISTRY_ENDPOINT": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'acr'), '2022-09-01').outputs.acrLoginServer.value]"
+    },
+    "AZURE_CONTAINER_REGISTRY_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'acr'), '2022-09-01').outputs.acrName.value]"
+    },
+    "LOGIC_APP_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'logicapp'), '2022-09-01').outputs.logicAppName.value]"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "records": {
+    "custcomplaints": [
+      {
+        "operation": "update",
+        "complaint_id": 52,
+        "passenger_id": 1,
+        "flight_id": 24,
+        "flight_number": "LA124",
+        "complaint_date": "2026-02-22T14:00:00Z",
+        "category": "Special Assistance",
+        "subcategory": "Wheelchair Not Provided",
+        "description": "Wheelchair assistance booked 3 weeks in advance for LA124 but no staff present at gate on arrival.",
+        "severity": "Critical",
+        "status": "Resolved",
+        "assigned_agent": "James Wright",
+        "resolution_notes": "Wheelchair arranged at destination. Formal apology issued.",
+        "resolution_date": "2026-02-22T18:00:00Z",
+        "satisfaction_score": 3.5
+      }
+    ],
+    "passengers": [],
+    "flights": []
+  }
+}
