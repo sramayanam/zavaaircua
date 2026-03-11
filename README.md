@@ -24,6 +24,9 @@ A full-stack customer complaints management system for **Lunar Air**, built with
 
 ## Architecture
 
+<img width="3568" height="3028" alt="image" src="https://github.com/user-attachments/assets/626eb15e-f774-4d9c-a104-d7ed13b2a652" />
+
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      Azure Container Apps                    │
