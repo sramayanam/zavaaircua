@@ -13,6 +13,9 @@ __pycache__/
 
 # Auto-generated screenshots from CUA runs
 cua/screenshots/
+screenshots/
+**/screenshots/
+**/summary.txt
 
 # macOS
 .DS_Store
