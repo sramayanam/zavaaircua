@@ -10,8 +10,6 @@
 
 | Risk | Detail |
 |------|--------|
-| **No authentication** | The Express REST API has no authentication. Any caller can read and write data. |
-| **Permissive CORS** | `app.use(cors())` defaults to `Access-Control-Allow-Origin: *`, allowing any website to call the API from a browser. |
 | **Not safe for public internet** | Do **not** deploy this application on a public-facing URL without first adding authentication and restricting CORS to your own origin(s). |
 | **Demo data only** | Run only against synthetic/demo data. Do not connect to production databases or expose real customer information. |
 
